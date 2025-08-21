@@ -1,0 +1,36 @@
+---
+title: "Practica de Funciones"
+author: "Lucas"
+date: "2025-08-21"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+sumar_numeros <- function(a, b) {
+  suma <- a + b
+  return(suma)
+}
+
+```
+
+```{r}
+metros_a_km <- function(metros) {
+  km <- metros / 1000
+  return(km)
+}
+
+```
+
+
+```{r}
+es_mayor_que <- function(a, b)  {
+    if (a > b) {return(a)} 
+    else if (b>a){return (b)}
+    else {return("Iguales")}
+    }
+```
+
