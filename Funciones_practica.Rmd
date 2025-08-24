@@ -34,3 +34,115 @@ es_mayor_que <- function(a, b)  {
     }
 ```
 
+```{r}
+calcular_nota <- function(tareas, examen) {
+  nota_final <- tareas * 0.4 + examen * 0.6  # 40% tareas, 60% examen
+  return(nota_final)
+}
+
+```
+
+```{r}
+calcular_nota2 <- function(tareas, examen) {
+  nota_final <- tareas * 0.4 + examen * 0.6
+  resultado <- paste("Tu nota final es", nota_final)  # Combina texto y valor
+  return(resultado)
+}
+```
+
+```{r}
+estadisticas_basicas <- function(x, na.rm = FALSE) {
+  if (!is.numeric(x)) {
+    stop("El input debe ser numérico.")
+  }
+  media <- mean(x, na.rm = na.rm)
+  desviacion <- sd(x, na.rm = na.rm)
+  return(list(media = media, desviacion = desviacion))
+}
+
+#Con list(media = media, desviacion = desviacion) tienes un objeto donde cada componente está etiquetado. Al llamar la función, puedes acceder por nombre:
+
+
+```
+
+
+#Podría devolver un vector nombrado también, algo así:
+```{r}
+estadisticas_basicas <- function(x, na.rm = FALSE) {
+  if (!is.numeric(x)) {
+    stop("El input debe ser numérico.")
+  }
+  media <- mean(x, na.rm = na.rm)
+  desviacion <- sd(x, na.rm = na.rm)
+  c(media = media, desviacion = desviacion)
+}
+
+#Si la función siempre devuelve valores numéricos de la misma clase → usa un vector nombrado.
+
+# Si se requieren resultados heterogéneos, estructurados y fácilmente extensibles →  una lista (recomendado en la mayoría de funciones estadísticas).
+
+```
+
+#Ejercicio 1
+```{r}
+duplicar <- function(x) {if (!is.numeric(x)) {
+    stop("El input debe ser numérico.")
+  }
+  dupli <- x*2
+  return(dupli)}
+```
+
+
+#Ejercicio 2: Función con texto
+```{r}
+#Crea una función llamada "presentarse()" que reciba un nombre y una edad, y devuelva un mensaje como:
+# "Mi nombre es [nombre] y tengo [edad] años".
+
+presentarse <- function(nombre, edad) {
+  devol <- paste("Mi nombre es", nombre, "y tengo", edad, "años")
+return(devol)}
+
+```
+
+#Ejercicio 3: Operaciones básicas
+```{r}
+#Crea una función llamada calcular() que reciba dos números y una operación ("+", "-", "*", "/") y devuelvael resultado
+
+calcular <- function(n1, n2, op) {
+  if (!is.numeric (c(n1,n2))) {
+    stop("El input debe ser numérico.")
+  }
+  oper <- if (op == "+") {
+    resultado <-  n1 + n2
+  } else if (op == "-") {
+    resultado <-  n1-n2
+  } else if (op == "*") {
+    resultado <-  n1*n2
+  } else if (op == "/") {
+    resultado <-  n1/n2
+  }
+  else {stop("Operacion incorrecta")
+    } 
+  return (resultado)
+  }
+
+  
+```
+
+
+#Ejercicio 4: Función con argumento por defecto
+```{r}
+#Crea una función llamada saludar_idioma() que reciba un nombre y un idioma (por defecto "español"), y devuelva un saludo en ese idioma.
+
+saludar_idioma <- function(nombre, idioma) {
+  if (idioma == "español") {
+    paste("Hola", nombre)
+    } else if (idioma == "ingles") {
+      paste("Hello", nombre) 
+    } else if (idioma == "frances") {paste("Bonjour", nombre)
+    } else {("Idioma no soportado")
+    } 
+  }
+
+```
+
