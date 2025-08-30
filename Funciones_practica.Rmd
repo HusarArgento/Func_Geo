@@ -176,8 +176,16 @@ datos <- c(5,2,5,7,8)
 #Crea una función llamada limpiar_vector() que reciba un vector y elimine los valores NA, devolviendo elvector limpio.
 
 limpiar_vector <- function (y, na.rm=FALSE) {
-  if (is.na=y)
+  if (!is.vector (x)) {
+    stop("El input debe ser vector")
+  }
+  x_limp
 }
 
+
+#x[!is.na(x)] 
+
+#En R, cuando pones x[...], estás seleccionando elementos del vector según el índice o condición dentro de los corchetes. Aquí le decimos: “dame los valores de x donde !is.na(x) es TRUE”.
+  
 ```
 
