@@ -146,3 +146,38 @@ saludar_idioma <- function(nombre, idioma) {
 
 ```
 
+#Ejercicio 5: Funcion con vectores
+```{r}
+#Crea una función llamada estadisticas_basicas() que reciba un vector numérico y devuelva una lista con lamedia, mediana, mínimo y máximo.
+
+estadisticas_basicas <- function (x, na.rm = FALSE ) {
+  if (!is.numeric(x)) {
+    stop("Ingrese un input numerico")
+  }
+    media <- mean(x, na.rm = na.rm)
+    mediana <- median(x, na.rm = na.rm)
+    minimo <- min(x, na.rm = na.rm)
+    maximo <- max(x, na.rm = na.rm)
+    return(list(
+      media = media,
+      mediana = mediana,
+      minimo = minimo,
+      maximo = maximo
+    ))
+}
+
+datos <- c(5,2,5,7,8)
+
+```
+
+
+#Ejercicio 6: Función de limpieza de datos
+```{r}
+#Crea una función llamada limpiar_vector() que reciba un vector y elimine los valores NA, devolviendo elvector limpio.
+
+limpiar_vector <- function (y, na.rm=FALSE) {
+  if (is.na=y)
+}
+
+```
+
