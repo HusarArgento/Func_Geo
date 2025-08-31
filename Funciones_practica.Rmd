@@ -238,3 +238,24 @@ factorial_recursivo <- function(n) {
 
 ```
 
+#Ejercicio 9: Función con múltiples tipos de entrada
+```{r}
+#Crea una función llamada procesar_datos()
+
+procesar_datos <- function(x) { 
+  if (is.numeric(x) && length (x) ==1) {
+    return(x^2)
+  }
+  else if (is.vector (x) && length(x)>1) {
+    return(sum(x))
+  }
+  else if (is.data.frame(x)) {return(nrow(x))
+  }
+  else {
+    return("Dato no soportado")
+  }
+  
+    }
+
+```
+
