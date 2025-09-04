@@ -259,3 +259,34 @@ procesar_datos <- function(x) {
 
 ```
 
+#Ejercicio 10: Función para análisis de texto
+```{r}
+#Crea una función llamada analizar_texto() que reciba un texto y devuelva:
+#Número de caracteres
+#Número de palabras
+#Palabra más larga
+
+
+analizar_texto <- function(texto) {
+  caracteres <-  nchar(texto)
+  cantidad_palabras <-  unlist (strsplit (texto, " "))
+  longitud <- length(cantidad_palabras)
+  palabra_larga <- cantidad_palabras[which.max(longitud)]
+  return(list(
+  cantidad_de_caracteres = caracteres,
+  cantidad_de_palabras = longitud,
+  palabra_mas_larga = palabra_larga
+  ))
+}
+
+#strsplit() devuelve una lista, no un vector. Por eso usamos unlist
+
+```
+
+#Ejercicio 12: Función de validación
+```{r}
+#Crea una función llamada validar_email() que reciba un string y determine si es un email válido (debecontener @ y un punto después del @).
+
+validar_email <- function()
+```
+
