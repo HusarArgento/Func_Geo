@@ -1,0 +1,35 @@
+You can exit swirl and return to the R prompt (>) at any time by pressing the Esc key.
+| If you are already at the prompt, type bye() to exit and save your progress. When you
+| exit properly, you'll see a short message letting you know you've done so.
+
+| When you are at the R prompt (>):
+| -- Typing skip() allows you to skip the current question.
+| -- Typing play() lets you experiment with R on your own; swirl will ignore what you
+| do...
+| -- UNTIL you type nxt() which will regain swirl's attention.
+| -- Typing bye() causes swirl to exit. Your progress will be saved.
+| -- Typing main() returns you to swirl's main menu.
+| -- Typing info() displays these options again.
+
+
+Use the args() function to determine the arguments to list.files().
+
+Determine which directory your R session is using as its current working directory using
+| getwd().
+
+> 
+> getwd()
+
+| Use dir.create() to create a directory in the current working directory called "testdir".
+| Set your working directory to "testdir" with the setwd() command.
+| Check to see if "mytest.R" exists in the working directory using the file.exists() function.
+| Use file.exists("mytest.R") to check that a file exists.
+| Access information about the file "mytest.R" by using file.info().
+| Change the name of the file "mytest.R" to "mytest2.R" by using file.rename().
+Make a copy of "mytest2.R" called "mytest3.R" using file.copy().
+
+> file.copy("mytest2.R", "mytest3.R")
+Provide the relative path to the file "mytest3.R" by using file.path().
+| You can use file.path to construct file and directory paths that are independent of the
+| operating system your R code is running on. Pass 'folder1' and 'folder2' as arguments to
+| file.path to make a platform-independent pathname.
