@@ -17,12 +17,14 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r}
 install.packages("swirl")
-<<<<<<< HEAD
-=======
+
 library(swirl)
 swirl()
 
+
 ```
+
+
 ```{r}
 library(tidyverse)
 enigh <- read.csv("hogares_enigh.csv")
@@ -40,6 +42,55 @@ enigh_corto <- mutate(enigh_corto, cve_ent=substr(ubica_geo,1,2) )
 
 ```{r}
 hogares_fil <- filter(enigh_corto, ing_cor >0, gasto_mon > 0) %>% group_by(cve_ent, clase_hog) %>% summarise(mean(ingreso_capita), clase_hog = n())   
->>>>>>> 7175e1a5d559df8bce72a8a62cb77018234d354d
+```
+
+```{r}
+ enigh_corto %>%   group_by(tot_integ) %>% 
++ summarise(tot_integ=n())
+```
+
+```{r}
+ingreso  <- enigh %>% filter(ing_cor < 1000000)
+
+ggplot(enigh_f)+
+  geom_histogram(mapping =aes(x=ing_cor), binwidth=1000)
+```
+
+```{r}
+ingreso  <- enigh %>% filter(ing_cor < 200000)
+ggplot(ingreso)+
+  geom_histogram(mapping =aes(x=ing_cor), binwidth=1000)
+
+
+```
+
+```{r}
+ingreso$clase_hog <- gsub(1, "Unipersonal", ingreso$clase_hog)
+ingreso$clase_hog <- gsub(2, "Nuclear", ingreso$clase_hog)
+ingreso$clase_hog <- gsub(3, "Ampliado", ingreso$clase_hog)
+ingreso$clase_hog <- gsub(4, "Compuesto", ingreso$clase_hog)
+ingreso$clase_hog <- gsub(5, "Corresidente", ingreso$clase_hog)
+
+```
+
+```{r}
+h1<- ggplot(data = ingreso, mapping = aes(x = ing_cor, color = clase_hog)) +
+geom_histogram(binwidth = 1000)
+```
+
+```{r}
+h2<- ggplot(data = ingreso, mapping = aes(x = ing_cor, color = clase_hog)) +
+geom_freqpoly(binwidth = 1000)
+
+```
+
+```{r}
+h3 <-ggplot(ingreso)+
+  geom_histogram(mapping =aes(x=ingtrab), binwidth=1000)
+```
+
+```{r}
+ggplot(ingreso)+ 
+  geom_histogram(mapping = aes)
 ```
 
