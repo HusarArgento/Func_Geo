@@ -1,7 +1,13 @@
 ---
+<<<<<<< HEAD
 title: "Practica Swirl"
 author: "Lucas"
 date: "2025-11-06"
+=======
+title: "Practica General"
+author: "Lucas"
+date: "2025-10-28"
+>>>>>>> 7175e1a5d559df8bce72a8a62cb77018234d354d
 output: html_document
 ---
 
@@ -11,5 +17,29 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r}
 install.packages("swirl")
+<<<<<<< HEAD
+=======
+library(swirl)
+swirl()
+
+```
+```{r}
+library(tidyverse)
+enigh <- read.csv("hogares_enigh.csv")
+enigh_corto <- select(enigh, folioviv, foliohog,
+ing_cor,gasto_mon, tot_integ,
+ubica_geo, sexo_jefe, clase_hog,edad_jefe)
+enigh_corto <- mutate(enigh_corto, lingreso=log(ing_cor),
+lgasto=log(gasto_mon),
+gasto_porcentaje=(gasto_mon/ing_cor)*100 )
+enigh_corto <- mutate(enigh_corto, ingreso_capita=ing_cor/tot_integ )
+enigh_corto <- mutate(enigh_corto, cve_ent=substr(ubica_geo,1,2) )
+
+
+```
+
+```{r}
+hogares_fil <- filter(enigh_corto, ing_cor >0, gasto_mon > 0) %>% group_by(cve_ent, clase_hog) %>% summarise(mean(ingreso_capita), clase_hog = n())   
+>>>>>>> 7175e1a5d559df8bce72a8a62cb77018234d354d
 ```
 

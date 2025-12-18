@@ -1,0 +1,292 @@
+---
+title: "Practica de Funciones"
+author: "Lucas"
+date: "2025-08-21"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+sumar_numeros <- function(a, b) {
+  suma <- a + b
+  return(suma)
+}
+
+```
+
+```{r}
+metros_a_km <- function(metros) {
+  km <- metros / 1000
+  return(km)
+}
+
+```
+
+
+```{r}
+es_mayor_que <- function(a, b)  {
+    if (a > b) {return(a)} 
+    else if (b>a){return (b)}
+    else {return("Iguales")}
+    }
+```
+
+```{r}
+calcular_nota <- function(tareas, examen) {
+  nota_final <- tareas * 0.4 + examen * 0.6  # 40% tareas, 60% examen
+  return(nota_final)
+}
+
+```
+
+```{r}
+calcular_nota2 <- function(tareas, examen) {
+  nota_final <- tareas * 0.4 + examen * 0.6
+  resultado <- paste("Tu nota final es", nota_final)  # Combina texto y valor
+  return(resultado)
+}
+```
+
+```{r}
+estadisticas_basicas <- function(x, na.rm = FALSE) {
+  if (!is.numeric(x)) {
+    stop("El input debe ser numérico.")
+  }
+  media <- mean(x, na.rm = na.rm)
+  desviacion <- sd(x, na.rm = na.rm)
+  return(list(media = media, desviacion = desviacion))
+}
+
+#Con list(media = media, desviacion = desviacion) tienes un objeto donde cada componente está etiquetado. Al llamar la función, puedes acceder por nombre:
+
+
+```
+
+
+#Podría devolver un vector nombrado también, algo así:
+```{r}
+estadisticas_basicas <- function(x, na.rm = FALSE) {
+  if (!is.numeric(x)) {
+    stop("El input debe ser numérico.")
+  }
+  media <- mean(x, na.rm = na.rm)
+  desviacion <- sd(x, na.rm = na.rm)
+  c(media = media, desviacion = desviacion)
+}
+
+#Si la función siempre devuelve valores numéricos de la misma clase → usa un vector nombrado.
+
+# Si se requieren resultados heterogéneos, estructurados y fácilmente extensibles →  una lista (recomendado en la mayoría de funciones estadísticas).
+
+```
+
+#Ejercicio 1
+```{r}
+duplicar <- function(x) {if (!is.numeric(x)) {
+    stop("El input debe ser numérico.")
+  }
+  dupli <- x*2
+  return(dupli)}
+```
+
+
+#Ejercicio 2: Función con texto
+```{r}
+#Crea una función llamada "presentarse()" que reciba un nombre y una edad, y devuelva un mensaje como:
+# "Mi nombre es [nombre] y tengo [edad] años".
+
+presentarse <- function(nombre, edad) {
+  devol <- paste("Mi nombre es", nombre, "y tengo", edad, "años")
+return(devol)}
+
+```
+
+#Ejercicio 3: Operaciones básicas
+```{r}
+#Crea una función llamada calcular() que reciba dos números y una operación ("+", "-", "*", "/") y devuelvael resultado
+
+calcular <- function(n1, n2, op) {
+  if (!is.numeric (c(n1,n2))) {
+    stop("El input debe ser numérico.")
+  }
+  oper <- if (op == "+") {
+    resultado <-  n1 + n2
+  } else if (op == "-") {
+    resultado <-  n1-n2
+  } else if (op == "*") {
+    resultado <-  n1*n2
+  } else if (op == "/") {
+    resultado <-  n1/n2
+  }
+  else {stop("Operacion incorrecta")
+    } 
+  return (resultado)
+  }
+
+  
+```
+
+
+#Ejercicio 4: Función con argumento por defecto
+```{r}
+#Crea una función llamada saludar_idioma() que reciba un nombre y un idioma (por defecto "español"), y devuelva un saludo en ese idioma.
+
+saludar_idioma <- function(nombre, idioma) {
+  if (idioma == "español") {
+    paste("Hola", nombre)
+    } else if (idioma == "ingles") {
+      paste("Hello", nombre) 
+    } else if (idioma == "frances") {paste("Bonjour", nombre)
+    } else {("Idioma no soportado")
+    } 
+  }
+
+```
+
+#Ejercicio 5: Funcion con vectores
+```{r}
+#Crea una función llamada estadisticas_basicas() que reciba un vector numérico y devuelva una lista con lamedia, mediana, mínimo y máximo.
+
+estadisticas_basicas <- function (x, na.rm = FALSE ) {
+  if (!is.numeric(x)) {
+    stop("Ingrese un input numerico")
+  }
+    media <- mean(x, na.rm = na.rm)
+    mediana <- median(x, na.rm = na.rm)
+    minimo <- min(x, na.rm = na.rm)
+    maximo <- max(x, na.rm = na.rm)
+    return(list(
+      media = media,
+      mediana = mediana,
+      minimo = minimo,
+      maximo = maximo
+    ))
+}
+
+datos <- c(5,2,5,7,8)
+
+```
+
+
+#Ejercicio 6: Función de limpieza de datos
+```{r}
+#Crea una función llamada limpiar_vector() que reciba un vector y elimine los valores NA, devolviendo elvector limpio.
+
+limpiar_vector <- function (y, na.rm=FALSE) {
+  if (!is.vector (x)) {
+    stop("El input debe ser vector")
+  }
+  x_limp <- x[!is.na(x)]
+}
+
+
+#x[!is.na(x)] 
+
+#En R, cuando pones x[...], estás seleccionando elementos del vector según el índice o condición dentro de los corchetes. Aquí le decimos: “dame los valores de x donde !is.na(x) es TRUE”.
+  
+```
+
+#Ejercicio 7: Función con condiciones múltiples
+```{r}
+
+clasificar_nota <- function(x, na.rm = FALSE) {
+  if(!is.numeric(x)) {
+    stop("El input debe ser numerico y del 1 al 10")
+  }
+  if (x < 0 | x > 10) {
+    stop("La nota debe estar entre 0 y 10")
+  }
+  if (x >= 0 & x <= 4) {
+    return("Insuficiente")
+  }
+  else if (x>= 5 & x<= 6) {
+    return("Aprobado")
+  }
+  
+  else if (x>= 7 & x<=8) {
+    return("Notable")
+  }
+  else if (x>= 9) {
+    return("Sobresaliente")
+  }
+}
+
+```
+
+#Ejercicio 8: Función recursiva
+```{r}
+#Crea una función llamada factorial() que calcule el factorial de un número usando recursividad
+
+factorial_recursivo <- function(n) {
+  # 1. Validación: no aceptamos números negativos
+  if (n < 0) {
+    stop("No se puede calcular el factorial de números negativos")
+  }
+  
+  # 2. Caso base: cuando n es 0 o 1, el factorial es 1
+  if (n == 0 || n == 1) {
+    return(1)
+  }
+  
+  # 3. Caso recursivo: la función se llama a sí misma
+  return(n * factorial_recursivo(n - 1))
+}
+
+
+```
+
+#Ejercicio 9: Función con múltiples tipos de entrada
+```{r}
+#Crea una función llamada procesar_datos()
+
+procesar_datos <- function(x) { 
+  if (is.numeric(x) && length (x) ==1) {
+    return(x^2)
+  }
+  else if (is.vector (x) && length(x)>1) {
+    return(sum(x))
+  }
+  else if (is.data.frame(x)) {return(nrow(x))
+  }
+  else {
+    return("Dato no soportado")
+  }
+  
+    }
+
+```
+
+#Ejercicio 10: Función para análisis de texto
+```{r}
+#Crea una función llamada analizar_texto() que reciba un texto y devuelva:
+#Número de caracteres
+#Número de palabras
+#Palabra más larga
+
+
+analizar_texto <- function(texto) {
+  caracteres <-  nchar(texto)
+  cantidad_palabras <-  unlist (strsplit (texto, " "))
+  longitud <- length(cantidad_palabras)
+  palabra_larga <- cantidad_palabras[which.max(longitud)]
+  return(list(
+  cantidad_de_caracteres = caracteres,
+  cantidad_de_palabras = longitud,
+  palabra_mas_larga = palabra_larga
+  ))
+}
+
+#strsplit() devuelve una lista, no un vector. Por eso usamos unlist
+
+```
+
+#Ejercicio 12: Función de validación
+```{r}
+#Crea una función llamada validar_email() que reciba un string y determine si es un email válido (debecontener @ y un punto después del @).
+
+validar_email <- function()
+```
+
