@@ -1,0 +1,128 @@
+---
+
+title: "Practica Swirl"
+author: "Lucas"
+date: "2025-11-06"
+=======
+title: "Practica General"
+author: "Lucas"
+date: "2025-10-28"
+
+output: html_document
+---
+
+
+```{r}
+install.packages("swirl")
+
+library(swirl)
+swirl()
+library(tidyverse)
+
+
+```
+
+
+```{r}
+enigh <- read.csv("hogares_enigh.csv")
+enigh_corto <- select(enigh, folioviv, foliohog,
+ing_cor,gasto_mon, tot_integ,
+ubica_geo, sexo_jefe, clase_hog,edad_jefe)
+enigh_corto <- mutate(enigh_corto, lingreso=log(ing_cor),
+lgasto=log(gasto_mon),
+gasto_porcentaje=(gasto_mon/ing_cor)*100 )
+enigh_corto <- mutate(enigh_corto, ingreso_capita=ing_cor/tot_integ )
+enigh_corto <- mutate(enigh_corto, cve_ent=substr(ubica_geo,1,2) )
+
+
+```
+
+```{r}
+hogares_fil <- filter(enigh_corto, ing_cor >0, gasto_mon > 0) %>% group_by(cve_ent, clase_hog) %>% summarise(mean(ingreso_capita), clase_hog = n())   
+```
+
+```{r}
+ enigh_corto %>%  
+  group_by(tot_integ) %>% 
+  summarise(conteo = n())
+```
+
+```{r}
+ingreso  <- enigh %>% filter(ing_cor < 1000000)
+
+ggplot(ingreso)+
+  geom_histogram(mapping =aes(x=ing_cor), binwidth=1000)
+```
+
+```{r}
+ingreso  <- enigh %>% filter(ing_cor < 200000)
+ggplot(ingreso)+
+  geom_histogram(mapping =aes(x=ing_cor), binwidth=1000)
+
+
+```
+
+```{r}
+ingreso$clase_hog <- gsub(1, "Unipersonal", ingreso$clase_hog)
+ingreso$clase_hog <- gsub(2, "Nuclear", ingreso$clase_hog)
+ingreso$clase_hog <- gsub(3, "Ampliado", ingreso$clase_hog)
+ingreso$clase_hog <- gsub(4, "Compuesto", ingreso$clase_hog)
+ingreso$clase_hog <- gsub(5, "Corresidente", ingreso$clase_hog)
+
+```
+
+```{r}
+h1<- ggplot(data = ingreso, mapping = aes(x = ing_cor, color = clase_hog)) +
+geom_histogram(binwidth = 1000)
+h1
+
+```
+
+```{r}
+h2<- ggplot(data = ingreso, mapping = aes(x = ing_cor, color = clase_hog)) +
+geom_freqpoly(binwidth = 1000)
+h2
+```
+
+```{r}
+h3 <-ggplot(enigh)+
+  geom_histogram(mapping =aes(x=ingtrab), binwidth=1000)
+h3
+```
+
+```{r}
+h4 <- ggplot(enigh)+
+  geom_histogram(mapping = aes(x=ingtrab), binwidth = 1000)+
+  coord_cartesian(xlim = c(0,150000))
+h4
+```
+
+```{r}
+ingresos_trabajo <- enigh %>%
+  filter(ingtrab > 0 & ingtrab <= 150000 )
+
+```
+
+```{r}
+ggplot(ingresos_trabajo)+
+  geom_histogram(mapping = aes(x=ingtrab), binwidth = 1000)
+```
+
+```{r}
+ggplot(ingresos_trabajo)+
+  geom_histogram(mapping = aes(x=ingtrab), binwidth = 10000)
+```
+
+```{r}
+ggplot(data = ingreso, mapping = aes(x = ing_cor, color = sexo_jefe, group = sexo_jefe)) +
+geom_freqpoly(binwidth = 1000)
+```
+```{r}
+ingresos_trabajo$sexo_jefe <- gsub(1, "Masculino", ingresos_trabajo$sexo_jefe)
+ingresos_trabajo$sexo_jefe <- gsub(2, "Femenino", ingresos_trabajo$sexo_jefe)
+
+ggplot(data = ingresos_trabajo, mapping = aes(x = ingtrab, color = sexo_jefe)) +
+geom_freqpoly(binwidth = 1000)
+
+```
+
