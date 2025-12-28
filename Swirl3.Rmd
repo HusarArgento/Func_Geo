@@ -151,15 +151,12 @@ mutate(ingreso_per_capita = ing_cor/tot_integ )
 
 
 ```{r}
-ggplot(data = na.omit(enigh), mapping = aes(x = clase_hog, y = ingreso_per_capita)) +
-geom_boxplot()
-```
-```{r}
 ggplot(data = enigh, mapping = aes(x = edad_jefe, y = ing_cor)) +
 geom_point(na.rm = TRUE)
 ```
 
 ```{r}
+
 enigh$sexo_jefe<-gsub(1,"Hombre", enigh$sexo_jefe)
 enigh$sexo_jefe<-gsub(2,"Mujer", enigh$sexo_jefe)
 enigh$clase_hog<-gsub(1, "Unipersonal", enigh$clase_hog)
@@ -169,14 +166,71 @@ enigh$clase_hog<-gsub(4, "Compuesto", enigh$clase_hog)
 enigh$clase_hog<-gsub(5, "Corresidente", enigh$clase_hog)
 ```
 
+
+
+```{r}
+ggplot(data = na.omit(enigh), mapping = aes(x = clase_hog, y = ingreso_per_capita)) +
+geom_boxplot()
+```
+
 ```{r}
 enigh <- enigh %>%
 mutate(ingreso_per_capita = ing_cor/tot_integ )
 
 ```
 
+
+
+
+
 ```{r}
-ggplot(data = na.omit(enigh), mapping = aes(x = clase_hog, y = ingreso_per_capita)) +
-geom_boxplot()
+summarise ( group_by(na.omit(enigh), clase_hog),
+mean(ingreso_per_capita), max(ingreso_per_capita), min(ingreso_per_capita),
+.groups = "drop")
+```
+
+
+```{r}
+enigh2 <- prueba %>%
+mutate(educa_jefe =
+ifelse(educa_jefe=="1" , "Sin instrucción" ,
+ifelse(educa_jefe=="2","Preescolar" ,
+ifelse(educa_jefe=="3","Primaria incompleta" ,
+ifelse(educa_jefe=="4", "Primaria completa" ,
+ifelse(educa_jefe=="5","Secundaria incompleta" ,
+ifelse(educa_jefe=="6", "Secundaria completa" ,
+ifelse(educa_jefe=="7", "Preparatoria incompleta" ,
+ifelse(educa_jefe=="8", "Preparatoria completa" ,
+ifelse(educa_jefe=="9", "Profesional incompleta" ,
+ifelse(educa_jefe=="10", "Profesional completa" , "Posgrado"
+)))))))))))
+```
+
+```{r}
+ggplot(data = enigh2) +
+geom_count(mapping = aes(x = clase_hog, y = educa_jefe))
+```
+
+```{r}
+enigh2 %>%
+count(educa_jefe, clase_hog)
+```
+
+```{r}
+enigh2 %>%
+count(educa_jefe , clase_hog) %>%
+ggplot(mapping = aes(x = clase_hog , y = educa_jefe)) +
+geom_tile(mapping = aes(fill = n))
+```
+
+```{r}
+enigh3 <- enigh2 %>%
+count(educa_jefe, clase_hog)
+enigh3
+```
+
+```{r}
+enigh3 %>% ggplot(mapping = aes(x = clase_hog , y = educa_jefe)) +
+geom_tile(mapping = aes(fill = n))
 ```
 
