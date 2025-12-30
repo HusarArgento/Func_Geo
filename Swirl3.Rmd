@@ -4,10 +4,6 @@ title: "Practica Swirl"
 author: "Lucas"
 date: "2025-11-06"
 =======
-title: "Practica General"
-author: "Lucas"
-date: "2025-10-28"
-
 output: html_document
 ---
 
@@ -207,7 +203,7 @@ ifelse(educa_jefe=="10", "Profesional completa" , "Posgrado"
 ```
 
 ```{r}
-ggplot(data = enigh2) +
+ggplot(data = enigh) +
 geom_count(mapping = aes(x = clase_hog, y = educa_jefe))
 ```
 
@@ -224,13 +220,58 @@ geom_tile(mapping = aes(fill = n))
 ```
 
 ```{r}
-enigh3 <- enigh2 %>%
-count(educa_jefe, clase_hog)
-enigh3
+
+enigh %>% 
+  count(educa_jefe, sexo_jefe)%>%
+  ggplot(mapping = aes(x = sexo_jefe , y = educa_jefe)) +
+geom_tile(mapping = aes(fill = n))
 ```
 
 ```{r}
-enigh3 %>% ggplot(mapping = aes(x = clase_hog , y = educa_jefe)) +
-geom_tile(mapping = aes(fill = n))
+enigh_ej <- enigh %>%
+  filter(edad_jefe < 30 & clase_hog == "Unipersonal")
+```
+
+```{r}
+
+enigh_ej3 <- enigh_ej %>% 
+  select(ubica_geo, edad_jefe, tot_integ, gasto_mon, alimentos, vesti_calz, vivienda, limpieza, salud, transporte, educa_espa, personales, transf_gas)%>%
+  mutate (across(c(alimentos:transf_gas),
+                 ~ case_when(
+                     is.na(gasto_mon) ~ NA_real_,
+                     gasto_mon == 0 ~ NA_real_, 
+                     TRUE ~ round((./gasto_mon)*100,2)
+                     ),
+                  .names = "{.col}_pct") )
+
+
+  
+  
+
+```
+
+```{r}
+ggplot(data = enigh_ej3, mapping = aes(x = edad_jefe, y = salud )) +
+geom_col()
+
+
+```
+
+```{r}
+ggplot(data = enigh_ej3)+
+  geom_col(mapping = aes(x = edad_jefe, y = salud ))
+```
+
+```{r}
+ggplot(data = enigh_ej3)+
+  geom_col(mapping = aes(x = edad_jefe, y = salud )) + coord_flip()
+```
+
+```{r}
+enigh_ejf <- enigh_ej3 %>% 
+  na.omit() %>%
+  group_by(ubica_geo)%>%
+  summarise(mean(salud), round(mean(salud_pct),2), mean(gasto_mon), .groups = "drop")
+
 ```
 
