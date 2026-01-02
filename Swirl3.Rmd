@@ -14,6 +14,9 @@ install.packages("swirl")
 library(swirl)
 swirl()
 library(tidyverse)
+options(scipen=999) #elimina notacion cientifica
+library(readxl)
+library(readr)
 
 
 ```
@@ -272,6 +275,66 @@ enigh_ejf <- enigh_ej3 %>%
   na.omit() %>%
   group_by(ubica_geo)%>%
   summarise(mean(salud), round(mean(salud_pct),2), mean(gasto_mon), .groups = "drop")
+
+```
+
+```{r}
+read_csv("1,40,5000
+2, 25, 2300
+1, 15, 4600", col_names=c("sexo","edad","ingreso"))
+```
+
+```{r}
+enoe <- read.csv("mu_enoe2.csv", col.names = c("Sexo", "Edad", "Ingreso"))
+
+
+
+```
+
+
+```{r}
+
+tabla_1 <- read_excel("tablas_ejemplo.xls", sheet = "tabla1")
+tabla_2 <-read_excel("tablas_ejemplo.xls", sheet = "tabla2")
+tabla_3 <-read_excel("tablas_ejemplo.xls", sheet = "tabla3")
+
+datos_bm2 <-  read.csv("datos_banco_mundial.csv")
+```
+
+```{r}
+datos <- datos_bm2%>%
+gather(`X1960` : `X2020`, key="periodo", value = "valores")
+dim(datos)
+
+datos <- datos %>%
+select(-(`serie.Code`)) %>%
+spread(key = "serie.Name", value="valores")
+dim(datos)
+```
+```{r}
+datos <- datos %>%
+mutate(`Cajeros automaticos (por cada 100.000 adultos)` = ifelse
+(`Cajeros automaticos (por cada 100.000 adultos)`==".." , NA,
+`Cajeros automaticos (por cada 100.000 adultos)`) ) %>%
+mutate(`PIB (US$ a precios constantes de 2010)` = ifelse
+(`PIB (US$ a precios constantes de 2010)`==".." , NA,
+`PIB (US$ a precios constantes de 2010)`) ) %>%
+mutate(`Poblacion, total` = ifelse
+(`Poblacion, total`==".." , NA,
+`Poblacion, total`) )
+
+datos <- datos %>% 
+  mutate(`Cajeros automaticos (por cada 100.000 adultos)`=as.numeric(`Cajeros automaticos (por cada 100.000 adultos)`)) %>%
+  mutate(`PIB (US$ a precios constantes de 2010)`= as.numeric(`PIB (US$ a precios constantes de 2010)`))%>%
+  mutate(`PIB (US$ a precios constantes de 2010)` =as.numeric(`PIB (US$ a precios constantes de 2010)`))
+
+```
+
+```{r}
+ggplot(datos, aes(x = periodo, y=`PIB (US$ a precios constantes de 2010)`))+
+  geom_line (aes(group = Pais), color= "grey50", na.rm = TRUE) +
+  geom_point(aes(color = Pais), na.rm = TRUE)
+
 
 ```
 
