@@ -1,0 +1,63 @@
+---
+title: "Ejercicios_Claude"
+author: "Lucas"
+date: "2026-01-17"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+# ===================================================================
+# BLOQUE 1: FILTROS Y AGREGACIONES BÁSICAS (Calentamiento)
+# ===================================================================
+
+# Ejercicio 1.1: Promedio de gasto en alimentos
+# Calcula el promedio de gasto en alimentos de todos los hogares.
+# Pista: usa summarise() y mean()
+
+```{r}
+hogares %>% 
+  summarise(media_gasto =  mean(gasto_mon, na.rm = TRUE))
+
+
+
+```
+
+# Ejercicio 1.2: Hogares con alto gasto en salud
+# Filtra los hogares que gastan más de 5000 en salud.
+# ¿Cuántos hogares son?
+# Pista: usa filter() y nrow() o count()
+
+```{r}
+hogares %>%
+  filter(salud > 500) %>%
+  nrow()
+
+```
+# Ejercicio 1.3: Distribución por sexo
+# Cuenta cuántas personas hay de cada sexo (1=Hombre, 2=Mujer).
+
+```{r}
+personas %>% count(sexo)
+
+#alternativa: personas %>% 
+  #group_by(sexo) %>% 
+  #summarise(n = n())
+```
+
+# BLOQUE 2: JOINS SIMPLES (Relacionando tablas)
+# Ejercicio 2.1: Hogares con sus viviendas
+# Une la tabla de hogares con viviendas para ver el tipo de vivienda
+# de cada hogar.
+```{r}
+hog_viv <- left_join(hogares, viviendas, by= "folioviv")
+```
+
+# Ejercicio 2.2: Personas en hogares de clase específica
+# Obtén todas las personas que viven en hogares de clase_hog = 1.
+
+```{r}
+
+```
+

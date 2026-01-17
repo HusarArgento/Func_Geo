@@ -337,4 +337,76 @@ ggplot(datos, aes(x = periodo, y=`PIB (US$ a precios constantes de 2010)`))+
 
 
 ```
+```{r}
+library(haven)
+library(tidyverse)
+hogares <- read_dta("hog_jal.dta")
+viviendas <- read_dta("viv_jal.dta")
+personas <- read_dta("per_jal.dta")
+trabajos <- read_dta("trab_jal.dta")
+ingresos <- read_dta("ing_jal.dta")
+```
+
+```{r}
+plan_rp2 <- hogares %>% 
+  semi_join( viviendas %>%
+               filter(disp_elect==5), by="folioviv")
+
+
+```
+
+```{r}
+plan_rp3 <- personas %>% 
+  semi_join(
+    viviendas %>% filter(est_socio == 1),
+    by = "folioviv"
+  ) %>%
+  count(sexo)
+
+```
+
+#Determina en promedio cuanto gastan en salud los hogares cuya vivienda se ubica en vecindad.
+```{r}
+plan_rp4 <- hogares %>% 
+  semi_join(
+    viviendas %>% filter(tipo_viv == 3),
+    by = "folioviv"
+  ) %>%
+  mean(salud)
+
+```
+
+#4. Determina el promedio de gasto en educación y esparcimiento (edu_espa) de los hogares, donde todos sus personas saben leer y escribir (alfabetism=1)
+
+```{r}
+ plan_rp5 <- hogares %>% 
+  semi_join(
+    personas %>%  group_by(foliohog) %>%
+      filter(alfabetism == 1), by = "foliohog"
+  ) %>%
+  summarise(todos_alfabetizados = all(educa_espa==1))
+
+plan_rp5 <- hogares %>% 
+  semi_join(
+    personas %>% 
+      group_by(folioviv) %>%
+      summarise(todos_alfabetizados = all(alfabetism == 1)) %>%
+      filter(todos_alfabetizados),
+    by = "folioviv"
+  ) %>%
+  summarise(promedio_educa_espa = mean(educa_espa, na.rm = TRUE))
+
+```
+```{r}
+
+```
+
+```{r}
+write.csv(hogares, "t_hogares.csv", row.names = FALSE)
+write.csv(viviendas, "t_viviendas.csv", row.names = FALSE)
+write.csv(ingresos, "t_ingresos.csv", row.names = FALSE)
+write.csv(trabajos, "t_trabajos.csv", row.names = FALSE)
+write.csv(personas, "t_personas.csv", row.names = FALSE)
+
+```
 
