@@ -8,6 +8,18 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
+
+```{r}
+library(haven)
+library(tidyverse)
+hogares <- read_dta("hog_jal.dta")
+viviendas <- read_dta("viv_jal.dta")
+personas <- read_dta("per_jal.dta")
+trabajos <- read_dta("trab_jal.dta")
+ingresos <- read_dta("ing_jal.dta")
+```
+
+
 # ===================================================================
 # BLOQUE 1: FILTROS Y AGREGACIONES BÁSICAS (Calentamiento)
 # ===================================================================
@@ -56,6 +68,66 @@ hog_viv <- left_join(hogares, viviendas, by= "folioviv")
 
 # Ejercicio 2.2: Personas en hogares de clase específica
 # Obtén todas las personas que viven en hogares de clase_hog = 1.
+
+```{r}
+hog1 <- personas %>% semi_join(hogares %>% filter(clase_hog==1), by="folioviv", "foliohog")
+nrow(hog1)
+head(hog1)
+
+hog1_1 <- inner_join(personas, hogares, by= "folioviv", "foliohog") %>%
+  filter(clase_hog==1)
+nrow(hog1_1)
+head(hog1_1)
+
+```
+
+# Ejercicio 2.3: Hogares sin vivienda registrada
+# Encuentra hogares que NO tienen registro en la tabla viviendas.
+```{r}
+
+hog2 <- anti_join(hogares, viviendas, by="folioviv")
+
+```
+# ===================================================================
+# BLOQUE 3: AGREGACIONES CON GROUP_BY (Nivel medio)
+# ===================================================================
+
+# Ejercicio 3.1: Gasto promedio por ubicación geográfica
+# Calcula el gasto monetario promedio (gasto_mon) por ubica_geo.
+# Ordena de mayor a menor gasto.
+
+```{r}
+hogares%>% 
+  group_by(ubica_geo) %>%
+  summarise(gasto_geo = mean(gasto_mon, na.rm = TRUE )) %>%arrange(gasto_geo)
+```
+# Ejercicio 3.3: Ingresos totales por hogar
+# Suma todos los ingresos (ing_tri) de cada hogar.
+```{r}
+ingresos %>% group_by(folioviv, foliohog) %>% summarise(total = sum(ing_tri, na.rm = TRUE) )
+```
+
+# Ejercicio 3.4: Porcentaje de analfabetismo por ubicación
+# Calcula qué porcentaje de personas NO sabe leer/escribir (alfabetism=2)
+# en cada ubica_geo.
+
+```{r}
+
+
+hog3 <- personas %>% 
+  inner_join(hogares, by=c("folioviv", "foliohog")) %>%
+  group_by(ubica_geo) %>%
+  summarise(mean(alfabetism==2)*100)
+
+```
+
+# ===================================================================
+# BLOQUE 4: FILTROS COMPLEJOS CON ALL/ANY (Desafiante)
+# ===================================================================
+
+# Ejercicio 4.1: Hogares donde TODOS tienen educación
+# Encuentra hogares donde todas las personas asisten a la escuela 
+# (asis_esc = 1) o son mayores de 18 años.
 
 ```{r}
 
