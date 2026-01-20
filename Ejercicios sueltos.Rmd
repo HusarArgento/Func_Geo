@@ -130,6 +130,252 @@ hog3 <- personas %>%
 # (asis_esc = 1) o son mayores de 18 años.
 
 ```{r}
+personas%>% group_by(folioviv, foliohog)%>%
+  summarise(todos_cumplen= all(asis_esc==1 | edad>18, na.rm = TRUE)) %>%
+  filter(todos_cumplen)
+```
+# Ejercicio 4.2: Hogares con AL MENOS un trabajador
+# Identifica hogares donde al menos una persona tiene trabajo registrado
+# en la tabla trabajos.
 
+```{r}
+hogares%>% distinct(folioviv, foliohog)%>% 
+  nrow()
+personas%>% distinct(folioviv, foliohog)%>%
+  nrow()
+
+trabajos %>% distinct(folioviv, foliohog) %>% nrow()
+hogares %>%semi_join(trabajos, by="folioviv", "foliohog")
+
+```
+```{r}
+hogares %>%
+  semi_join(trabajos, by = c("folioviv", "foliohog"))
+```
+
+# Ejercicio 4.3: Hogares donde NADIE habla lengua indígena
+# Encuentra hogares donde ninguna persona habla lengua indígena 
+# (hablaind = 2 significa NO habla).
+
+```{r}
+hogares%>% 
+  semi_join(personas %>% filter(hablaind==2), by=c("folioviv", "foliohog" ))
+#El filter es por fila, aca le digo que me filtre los hogares donde al menos una persona no es hablante indigena
+
+hogares %>% 
+  semi_join(personas%>% 
+  group_by(folioviv, foliohog)%>%
+  summarise(nadie_habla= all(hablaind==2, na.rm = TRUE)) %>%
+  filter(nadie_habla), by=c("folioviv","foliohog")
+  )
+#Aca le digo que me filtre los hogares en donde ninguna personas habla lengua indigena
+```
+
+# BLOQUE 4.5: EJERCICIOS ADICIONALES - PRÁCTICA INTENSIVA
+# (Mismo nivel que Bloque 4, más variedad)
+# ===================================================================
+
+# Ejercicio 4.5.1: Hogares sin menores de edad
+# Encuentra hogares donde TODAS las personas son mayores de 18 años.
+
+```{r}
+personas  %>%  group_by(folioviv, foliohog) %>% 
+  summarise(mayores_18 = all(edad >= 18, na.rm=TRUE), .groups = "drop") %>% 
+  filter(mayores_18) %>% 
+  nrow()
+
+```
+# Ejercicio 4.5.2: Hogares con diversidad de edades
+# Encuentra hogares que tengan AL MENOS una persona menor de 18 Y
+# AL MENOS una persona mayor de 60.
+
+```{r}
+personas  %>%  group_by(folioviv, foliohog) %>% 
+  summarise(franja = any(edad < 18, na.rm=TRUE) & any(edad > 60, na.rm=TRUE), .groups = "drop") %>% 
+  filter(franja) %>% 
+  nrow()
+
+```
+#Diferencia clave:
+#edad < 18 & edad > 60 (AND dentro)
+#Evalúa cada persona individualmente:
+
+#Persona 1: ¿Es menor de 18 Y mayor de 60? → Imposible → FALSE
+#Persona 2: ¿Es menor de 18 Y mayor de 60? → Imposible → FALSE
+
+#any(edad < 18) & any(edad > 60) (AND fuera)
+#Evalúa el grupo completo:
+
+#¿Hay AL MENOS una persona < 18? → TRUE
+#¿Hay AL MENOS una persona > 60? → TRUE
+#Ambas TRUE → TRUE
+
+
+# Ejercicio 4.5.3: Hogares completamente alfabetizados con niños
+# Encuentra hogares donde:
+# - TODAS las personas son alfabetizadas (alfabetism == 1)
+# - Y tienen AL MENOS un menor de 12 años
+
+```{r}
+personas  %>%  group_by(folioviv, foliohog) %>% 
+  summarise(alf = all(alfabetism==1 , na.rm=TRUE) & any(edad < 12, na.rm=TRUE), .groups = "drop") %>% 
+  filter(alf) %>% 
+  nrow()
+```
+# Ejercicio 4.5.4: Hogares sin ingresos registrados
+# Encuentra hogares que NO tienen ningún registro en la tabla ingresos.
+```{r}
+hogares %>% anti_join(ingresos, by=c("folioviv", "foliohog"))
+
+```
+# Ejercicio 4.5.5: Hogares donde nadie trabaja
+# Encuentra hogares que NO tienen ninguna persona registrada en trabajos.
+# ¿Cuántos hogares son? ¿Cuál es su gasto promedio?
+
+```{r}
+hogares %>% anti_join(trabajos, by=c("folioviv", "foliohog")) %>%
+  summarise(hogares_sin_trabajo = n(), 
+            gasto_mediomean = mean(gasto_mon))
+
+```
+# Ejercicio 4.5.6: Hogares multigeneracionales
+# Encuentra hogares con AL MENOS 3 generaciones:
+# - Al menos una persona < 18 años (niños)
+# - Al menos una persona entre 18-59 años (adultos)
+# - Al menos una persona >= 60 años (adultos mayores)
+
+```{r}
+personas  %>%  group_by(folioviv, foliohog) %>% 
+  summarise(generaciones = any (edad<18 , na.rm=TRUE) & any(edad > 18 & edad<59, na.rm=TRUE) & any(edad>= 60), .groups = "drop") %>% 
+  filter(generaciones) %>% 
+  nrow()
+```
+#version mas copada
+
+```{r}
+personas  %>%  group_by(folioviv, foliohog) %>% 
+  summarise(niños = any (edad<18 , na.rm=TRUE), 
+            adultos = any(edad > 18 & edad<59, na.rm=TRUE),
+            mayores= any(edad>= 60, na.rm=TRUE), .groups = "drop") %>%
+  summarise(hogares_niños=sum(niños),
+            hogares_adultos=sum(adultos),
+            hograes_mayores=sum(mayores))
+  
+```
+```{r}
+personas %>% 
+  group_by(folioviv, foliohog) %>% 
+  summarise(
+    niños = any(edad < 18, na.rm = TRUE),
+    adultos = any(edad >= 18 & edad < 60, na.rm = TRUE),
+    mayores = any(edad >= 60, na.rm = TRUE),
+    .groups = "drop"
+  ) %>% 
+  count(niños, adultos, mayores)
+```
+
+```{r}
+# Para tu análisis (guardalo)
+analisis_detallado <- personas %>% 
+  group_by(folioviv, foliohog) %>% 
+  summarise(...) %>%
+  count(tiene_ninos, tiene_adultos, tiene_mayores)
+
+# Para el reporte final
+reporte_ejecutivo <- analisis_detallado %>%
+  summarise(
+    hogares_con_ninos = sum(tiene_ninos),
+    hogares_con_adultos = sum(tiene_adultos),
+    ...
+  )
+```
+
+# Ejercicio 4.5.7: Hogares homogéneos por sexo
+# Encuentra hogares donde TODAS las personas son del mismo sexo.
+
+```{r}
+personas %>% 
+  group_by(folioviv, foliohog) %>% 
+  summarise(
+    monosexual = n_distinct(sexo) == 1,
+    .groups = "drop"
+  ) %>% 
+  filter(monosexual) %>%
+  nrow()
+```
+#No le pide que tome las filas con sexo 1, sino le dice que cuente los hogares cuyas filas son todas de un mismo valor
+
+```{r}
+personas %>% 
+  group_by(folioviv, foliohog) %>% 
+  summarise(
+    monosexual = n_distinct(sexo) == 1,
+    cantidad_sexos = n_distinct(sexo),
+    .groups = "drop"
+  ) %>% 
+  count(monosexual, cantidad_sexos)
+```
+```{r}
+personas %>% 
+  group_by(folioviv, foliohog) %>% 
+  summarise(
+    todos_hombres = all(sexo == 1, na.rm = TRUE),
+    todas_mujeres = all(sexo == 2, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  summarise(
+    hogares_solo_hombres = sum(todos_hombres),
+    hogares_solo_mujeres = sum(todas_mujeres),
+    total_homogeneos = sum(todos_hombres | todas_mujeres)
+  )
+```
+# Ejercicio 4.5.8: Hogares con alta asistencia escolar
+# Encuentra hogares donde TODAS las personas menores de 18 años
+# asisten a la escuela (asis_esc == 1).
+
+```{r}
+personas %>% 
+  group_by(folioviv, foliohog) %>%  
+  summarise(alfabetizados = all(edad< 18 & asis_esc==1), .groups = "drop")# pregunta si todos en el hogar son menores de 18 y van a la escuela, no si todos los menores de 18 van a las escuela
+
+personas %>% filter(edad < 18) %>% 
+  group_by(folioviv, foliohog) %>% 
+  summarise(alfabetizados = all(asis_esc ==1, na.rm = TRUE),
+            tiene_menores = n() > 0,  # Verificar que haya al menos un menor
+            .groups = "drop"
+            ) %>% 
+  filter(alfabetizados, tiene_menores)
+
+
+#Recordar que sin la verificacion incluye hogares sin menores (porque all() sobre un conjunto vacío devuelve TRUE)
+```
+
+# Ejercicio 4.5.9: Hogares vulnerables por discapacidad
+# Encuentra hogares donde AL MENOS DOS personas tienen discapacidad
+# (disc1 != "6", donde "6" significa sin discapacidad).
+```{r}
+personas %>% 
+  group_by(folioviv, foliohog) %>% 
+  summarise(
+    cant_con_disc = sum(disc1 != "6", na.rm = TRUE),
+    .groups = "drop"
+  ) %>% 
+  filter(cant_con_disc >= 2)
+
+#alternativa
+personas %>% 
+  filter(disc1 != "6") %>%  # Solo personas con discapacidad
+  group_by(folioviv, foliohog) %>% 
+  summarise(cant_con_disc = n(), .groups = "drop") %>%  # Contar
+  filter(cant_con_disc >= 2)  # Al menos 2
+
+
+#alternativa 2
+personas %>% 
+  filter(disc1 != "6") %>%
+  group_by(folioviv, foliohog) %>% 
+  summarise(cant_con_disc = n(), .groups = "drop") %>%
+  filter(cant_con_disc >= 2) %>%
+  nrow()
 ```
 
