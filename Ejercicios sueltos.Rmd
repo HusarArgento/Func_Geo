@@ -379,3 +379,42 @@ personas %>%
   nrow()
 ```
 
+# Ejercicio 4.5.10: Hogares con ingresos pero sin trabajos
+# Encuentra hogares que tienen registros en ingresos pero NO en trabajos.
+# ¿Cómo puede ser esto? (pensá: jubilaciones, ayudas, etc.)
+
+```{r}
+ingresos %>%  
+  anti_join(trabajos, by=c("folioviv", "foliohog")) %>% 
+  distinct (folioviv, foliohog) %>% 
+  nrow()
+
+
+#alternativa
+hogares %>%
+  semi_join(ingresos, by = c("folioviv", "foliohog")) %>%
+  anti_join(trabajos, by = c("folioviv", "foliohog"))
+
+#Ventaja: La tabla hogares ya tiene una sola fila por hogar, así que no necesitás distinct().
+
+
+
+```
+# Ejercicio 4.5.11: Hogares equilibrados en gasto
+# Encuentra hogares donde el gasto en alimentos NO supera el 40%
+# del gasto total Y el gasto en salud es mayor a 0.
+
+```{r}
+
+per <- hogares %>% 
+  filter(gasto_mon > 0, salud > 0) %>%  # Filtrar antes de dividir
+  mutate(percent_alimentos = round((alimentos / gasto_mon) * 100, 2)) %>% 
+  filter(percent_alimentos <= 40)
+
+#extra para cambiar la label
+per$percent_alimentos <- haven::labelled(
+  per$percent_alimentos,
+  label = "% de gasto en alimentos"
+)
+```
+
