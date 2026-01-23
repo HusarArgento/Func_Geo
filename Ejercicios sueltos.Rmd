@@ -379,3 +379,18 @@ personas %>%
   nrow()
 ```
 
+# Ejercicio 4.5.10: Hogares con ingresos pero sin trabajos
+# Encuentra hogares que tienen registros en ingresos pero NO en trabajos.
+# ¿Cómo puede ser esto? (pensá: jubilaciones, ayudas, etc.)
+
+```{r}
+ingresos %>%
+  anti_join(trabajos, by="folioviv", "foliohog")%>%
+  group_by(folioviv, foliohog)
+
+
+
+  
+
+```
+
