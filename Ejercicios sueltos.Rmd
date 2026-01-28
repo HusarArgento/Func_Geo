@@ -418,3 +418,42 @@ per$percent_alimentos <- haven::labelled(
 )
 ```
 
+# Ejercicio 4.5.12: Personas en hogares sin electricidad
+# ¿Cuántas personas viven en viviendas sin electricidad (disp_elect != 1)?
+
+```{r}
+personas %>% 
+  left_join(viviendas, by = "folioviv") %>%
+  filter(disp_elect != 1) %>%
+  count()
+
+#alternativa
+  personas %>% 
+  left_join(viviendas, by = "folioviv") %>%
+  filter(disp_elect != 1) %>%
+  summarise(
+    cantidad_personas = n(),
+    cantidad_hogares = n_distinct(folioviv, foliohog),
+    cantidad_viviendas = n_distinct(folioviv)
+  )
+
+```
+
+# Ejercicio 4.5.13: Hogares pequeños con altos ingresos
+# Encuentra hogares con 2 o menos personas Y con ing_cor > 50000.
+# ¿Cuántos son? ¿Cuál es su gasto promedio en educación?
+
+```{r}
+# count() - más conciso
+personas %>% count(folioviv, foliohog)
+
+# group_by + summarise - más explícito
+personas %>% group_by(folioviv, foliohog) %>%
+  summarise(cant_personas = n(), .groups = "drop") %>%
+  filter(cant_personas<=2) %>% 
+  inner_join(hogares, by=c("folioviv", "foliohog")) %>%
+  filter(ing_cor>50000) %>%
+  summarise(media_educ= round(mean(educa_espa, na.rm = TRUE),2),
+              cantidad_de_hogares = n())
+```
+
