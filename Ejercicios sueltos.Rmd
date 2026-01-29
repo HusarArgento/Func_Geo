@@ -31,9 +31,6 @@ ingresos <- read_dta("ing_jal.dta")
 ```{r}
 hogares %>% 
   summarise(media_gasto =  mean(gasto_mon, na.rm = TRUE))
-
-
-
 ```
 
 # Ejercicio 1.2: Hogares con alto gasto en salud
@@ -148,6 +145,7 @@ trabajos %>% distinct(folioviv, foliohog) %>% nrow()
 hogares %>%semi_join(trabajos, by="folioviv", "foliohog")
 
 ```
+
 ```{r}
 hogares %>%
   semi_join(trabajos, by = c("folioviv", "foliohog"))
@@ -223,15 +221,14 @@ personas  %>%  group_by(folioviv, foliohog) %>%
   nrow()
 ```
 # Ejercicio 4.5.4: Hogares sin ingresos registrados
-# Encuentra hogares que NO tienen ningún registro en la tabla ingresos.
-```{r}
+# Encuentra hogares que NO tienen ningún registro en la tabla ingresos.```{r}
 hogares %>% anti_join(ingresos, by=c("folioviv", "foliohog"))
 
 ```
 # Ejercicio 4.5.5: Hogares donde nadie trabaja
 # Encuentra hogares que NO tienen ninguna persona registrada en trabajos.
 # ¿Cuántos hogares son? ¿Cuál es su gasto promedio?
-
+'
 ```{r}
 hogares %>% anti_join(trabajos, by=c("folioviv", "foliohog")) %>%
   summarise(hogares_sin_trabajo = n(), 
@@ -315,6 +312,9 @@ personas %>%
   ) %>% 
   count(monosexual, cantidad_sexos)
 ```
+
+
+
 ```{r}
 personas %>% 
   group_by(folioviv, foliohog) %>% 
@@ -455,5 +455,42 @@ personas %>% group_by(folioviv, foliohog) %>%
   filter(ing_cor>50000) %>%
   summarise(media_educ= round(mean(educa_espa, na.rm = TRUE),2),
               cantidad_de_hogares = n())
+```
+
+# Ejercicio 4.5.14: Hogares donde NADIE tiene trabajo formal
+# Encuentra hogares que tienen personas registradas en trabajos
+# pero NINGÚN trabajo tiene prestaciones (pres_2, pres_3, pres_4 todos en 0 o NA).
+
+```{r}
+trabajos %>% 
+  group_by(folioviv, foliohog) %>%
+  summarise(
+    todos_sin_prestaciones = all((pres_2 == 0 | is.na(pres_2)) & 
+                                  (pres_3 == 0 | is.na(pres_3)) & 
+                                  (pres_4 == 0 | is.na(pres_4))),
+    .groups = "drop"
+  ) %>%
+  filter(todos_sin_prestaciones)
+
+#probar alterna
+hogares %>%
+  semi_join(trabajos %>% 
+  group_by(folioviv, foliohog) %>%
+  summarise(
+    todos_sin_prestaciones = all((pres_2 == 0 | is.na(pres_2)) & 
+                                  (pres_3 == 0 | is.na(pres_3)) & 
+                                  (pres_4 == 0 | is.na(pres_4))),
+    .groups = "drop"
+  ) %>%
+  filter(todos_sin_prestaciones), by = c("folioviv", "foliohog")
+  )
+```
+
+#Ejercicio 4.5.15: Comparación de hogares con/sin niños
+#Crea dos grupos: hogares con menores de 18 y hogares sin menores.
+#Compara el gasto promedio en educación de cada grupo
+
+```{r}
+
 ```
 
