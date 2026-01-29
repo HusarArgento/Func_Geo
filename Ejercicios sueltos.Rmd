@@ -484,10 +484,12 @@ hogares %>%
   ) %>%
   filter(todos_sin_prestaciones), by = c("folioviv", "foliohog")
   )
+
 ```
 
+
 #Ejercicio 4.5.15: Comparación de hogares con/sin niños
-#Crea dos grupos: hogares con menores de 18 y hogares sin menores.
+#Crea dos grupos: hogares con menores de 18 y hogares sin menores
 #Compara el gasto promedio en educación de cada grupo
 
 ```{r}
