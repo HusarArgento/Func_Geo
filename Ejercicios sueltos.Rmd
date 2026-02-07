@@ -17,6 +17,7 @@ viviendas <- read_dta("viv_jal.dta")
 personas <- read_dta("per_jal.dta")
 trabajos <- read_dta("trab_jal.dta")
 ingresos <- read_dta("ing_jal.dta")
+
 ```
 
 
@@ -509,13 +510,112 @@ hogares %>%
 
 ```{r}
 personas %>% group_by(folioviv, foliohog) %>% 
-  summarise(mayores = any (edad>=18),
-            menores = any(edad<18), .groups = "drop")%>%
+  summarise(grupo_et = any (edad<18), .groups = "drop")%>%
   inner_join(hogares %>% 
-               select(folioviv, foliohog, educa_espa), by= c("folioviv", "foliohog")) %>% 
+               select(folioviv, foliohog, educa_espa), by= c("folioviv", "foliohog")) %>%
+  mutate(menores = ifelse (grupo_et, "con menores", "sin menores")) %>%
+  group_by(menores) %>% 
   summarise(gasto_promedio_educ = mean(educa_espa, na.rm = TRUE))
-  
-
 
 ```
+
+# ===================================================================
+# BLOQUE 4.6: EJERCICIOS DE FLUJO LÓGICO (Práctica adicional)
+# Mismo nivel que 4.5.15 - Enfoque en pensar el flujo correcto
+# ===================================================================
+
+# Ejercicio 4.6.1: Comparación hogares urbanos vs rurales
+# Clasifica hogares según ubica_geo (los primeros 2 dígitos indican el estado).
+# Crea dos grupos: urbano (ubica_geo que termina en número impar) 
+# vs rural (termina en par).
+# Compara el ingreso promedio (ing_cor) de cada grupo.
+
+```{r}
+hogares %>% 
+  mutate(espacio = ifelse(as.numeric(ubica_geo) %% 2==0, "rural", "urbano")) %>% 
+  group_by(espacio) %>% 
+  summarise(media_ing= mean(ing_cor, na.rm = TRUE))
+
+```
+
+# Ejercicio 4.6.2: Hogares con balance generacional
+# Clasifica hogares en tres categorías:
+# - "Principalmente niños": >50% de personas menores de 18
+# - "Principalmente adultos": >50% de personas entre 18-59
+# - "Principalmente mayores": >50% de personas ≥60
+# - "Mixto": ningún grupo supera el 50%
+# ¿Cuántos hogares hay de cada tipo? ¿Cuál es el gasto promedio en salud?
+
+```{r}
+personas %>% 
+  group_by(folioviv, foliohog) %>%
+  summarise(
+    total=n(),
+    nenes = sum(edad < 18) / total *100, 
+            adultos = sum(edad>=18 & edad<60) /total*100,
+            mayores= sum(edad >= 60)/total*100, .groups = "drop"
+    ) %>%  
+  mutate(franja_et= case_when(
+    nenes>50~"Principalmente niños",
+    adultos>50~ "Principalmente adultos",
+    mayores>50~"Principalmente ancianos",
+    TRUE~"Mixto"
+    ))%>% 
+  inner_join(hogares, by=c("folioviv", "foliohog")) %>% 
+  group_by(franja_et) %>% 
+  summarise(
+    n_hogares = n(),
+    gasto_promedio = mean(salud, na.rm=TRUE)
+    )
+  
+
+```
+
+# Ejercicio 4.6.2: Hogares con balance generacional
+# Clasifica hogares en tres categorías:
+# - "Principalmente niños": >50% de personas menores de 18
+# - "Principalmente adultos": >50% de personas entre 18-59
+# - "Principalmente mayores": >50% de personas ≥60
+# - "Mixto": ningún grupo supera el 50%
+# ¿Cuántos hogares hay de cada tipo? ¿Cuál es el gasto promedio en salud?
+
+
+```{r}
+personas %>%
+  group_by(folioviv, foliohog) %>%
+  summarise(
+    porc_ninos = (sum(edad < 18) / n()) * 100,
+    porc_adultos = (sum(edad >= 18 & edad < 60) / n()) * 100,
+    porc_mayores = (sum(edad >= 60) / n()) * 100,
+    .groups = "drop"
+  ) %>%
+  mutate(categoria = case_when(
+    porc_ninos > 50 ~ "Principalmente niños",
+    porc_adultos > 50 ~ "Principalmente adultos",
+    porc_mayores > 50 ~ "Principalmente mayores",
+    TRUE ~ "Mixto"
+  )) %>%
+  count(categoria)  # ← Agrupa y cuenta automáticamente
+
+```
+
+# Ejercicio 4.6.3: Intensidad laboral del hogar
+# Para cada hogar, calcula la "tasa de empleo":
+# (personas con trabajo / personas en edad laboral 18-65) * 100
+# Clasifica hogares en:
+# - "Alta empleabilidad": tasa ≥ 75%
+# - "Media empleabilidad": tasa entre 25-74%
+# - "Baja empleabilidad": tasa < 25%
+# - "Sin población laboral": no hay personas 18-65
+# Compara el ingreso promedio de cada grupo.
+
+```{r}
+personas %>% group_by(folioviv, foliohog) %>% 
+  summarise(
+    personas_edadlab = sum(edad >=18 & edad<=65)
+    
+            )
+```
+
+
 
