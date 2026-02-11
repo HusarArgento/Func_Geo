@@ -608,14 +608,115 @@ personas %>%
 # - "Baja empleabilidad": tasa < 25%
 # - "Sin población laboral": no hay personas 18-65
 # Compara el ingreso promedio de cada grupo.
-
+#Alternativa 1
 ```{r}
-personas %>% group_by(folioviv, foliohog) %>% 
-  summarise(
-    personas_edadlab = sum(edad >=18 & edad<=65)
-    
-            )
+personas %>%  # PASO 1: Definir el UNIVERSO (personas en edad laboral)
+  filter(edad >= 18 & edad <= 65) %>% 
+
+  # PASO 2: Marcar quiénes están EMPLEADAS dentro de ese universo 
+  mutate( clave = paste(folioviv, foliohog, numren, sep = "-"), empleado = clave %in% paste(trabajos$folioviv, trabajos$foliohog, trabajos$numren, sep = "-") ) %>% 
+
+  # PASO 3: Agrupar por hogar 
+  group_by(folioviv, foliohog) %>% summarise( universo_laboral = n(),empleados = sum(empleado), .groups = "drop" )%>% # Numerador: empleados dentro del universo 
+
+  # PASO 4: Calcular el indicador 
+  mutate( tasa_empleo = (empleados / universo_laboral) * 100
+  )
+
 ```
 
+#Alternativa 2:
+```{r}
+personas %>%
+  filter(edad >= 18 & edad <= 65) %>%
+  left_join(
+    trabajos %>%
+      select(folioviv, foliohog, numren) %>%
+      mutate(empleado = TRUE),
+    by = c("folioviv", "foliohog", "numren")
+  ) %>%
+  mutate(
+    empleado = replace_na(empleado, FALSE)
+  ) %>%
+  group_by(folioviv, foliohog) %>%
+  summarise(
+    universo_laboral = n(),
+    empleados = sum(empleado),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    tasa_empleo = (empleados / universo_laboral) * 100
+  )
 
+```
+
+#Alternativa 3: mas adecuada para medir pobreza estructural
+```{r}
+personas %>%
+  mutate(
+    empleable = edad >= 18 & edad <= 65
+  ) %>%
+  left_join(
+    trabajos %>%
+      select(folioviv, foliohog, numren) %>%
+      mutate(empleado = TRUE),
+    by = c("folioviv", "foliohog", "numren")
+  ) %>%
+  mutate(
+    empleado = replace_na(empleado, FALSE)
+  ) %>%
+  group_by(folioviv, foliohog) %>%
+  summarise(
+    universo_laboral = sum(empleable),
+    empleados = sum(empleado & empleable),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    tasa_empleo = if_else(
+      universo_laboral == 0,
+      NA_real_,
+      (empleados / universo_laboral) * 100
+    )
+  )
+
+```
+
+#Altenrativa distinct
+```{r}
+empleados <- trabajos %>%
+  distinct(folioviv, foliohog, numren) %>%
+  mutate(tiene_trabajo = TRUE)
+personas_marcadas <- personas %>%
+  left_join(empleados, by = c("folioviv", "foliohog", "numren"))
+mutate(tiene_trabajo = replace_na(tiene_trabajo, FALSE))
+
+
+hogares_empleo <- personas_marcadas %>%
+  group_by(folioviv, foliohog) %>%
+  summarise(
+    total_personas = n(),
+    edad_laboral = sum(edad >= 18 & edad <= 65, na.rm = TRUE),
+    con_trabajo = sum(tiene_trabajo == TRUE & edad >= 18 & edad <= 65, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+#Alternativa 2
+hogares_empleo <- hogares_empleo %>%
+  mutate(
+    tasa_empleo = case_when(
+      edad_laboral == 0 ~ NA_real_,  # Sin población laboral
+      TRUE ~ (con_trabajo / edad_laboral) * 100
+    )
+  )
+
+hogares_clasificados <- hogares_empleo %>%
+  mutate(
+    categoria = case_when(
+      edad_laboral == 0 ~ "Sin población laboral",
+      tasa_empleo >= 75 ~ "Alta empleabilidad",
+      tasa_empleo >= 25 ~ "Media empleabilidad",
+      TRUE ~ "Baja empleabilidad"
+    )
+  )
+```
 
