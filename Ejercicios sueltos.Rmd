@@ -608,7 +608,7 @@ personas %>%
 # - "Baja empleabilidad": tasa < 25%
 # - "Sin población laboral": no hay personas 18-65
 # Compara el ingreso promedio de cada grupo.
-#Alternativa 1
+#Alternativa 1:Paste
 ```{r}
 personas %>%  # PASO 1: Definir el UNIVERSO (personas en edad laboral)
   filter(edad >= 18 & edad <= 65) %>% 
@@ -720,3 +720,229 @@ hogares_clasificados <- hogares_empleo %>%
   )
 ```
 
+```{r}
+# Paso 1: Marcar empleados
+empleados <- trabajos %>%
+  distinct(folioviv, foliohog, numren) %>%
+  mutate(tiene_trabajo = TRUE)
+
+# Paso 2-5: Pipeline completo
+resultado <- personas %>%
+  left_join(empleados, by = c("folioviv", "foliohog", "numren")) %>%
+  mutate(tiene_trabajo = ifelse(is.na(tiene_trabajo), FALSE, TRUE)) %>%
+  group_by(folioviv, foliohog) %>%
+  summarise(
+    edad_laboral = sum(edad >= 18 & edad <= 65),
+    con_trabajo = sum(tiene_trabajo & edad >= 18 & edad <= 65),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    tasa_empleo = ifelse(edad_laboral > 0, 
+                         (con_trabajo / edad_laboral) * 100, 
+                         NA)
+  ) %>%
+  mutate(
+    categoria = case_when(
+      edad_laboral == 0 ~ "Sin población laboral",
+      tasa_empleo >= 75 ~ "Alta empleabilidad",
+      tasa_empleo >= 25 ~ "Media empleabilidad",
+      TRUE ~ "Baja empleabilidad"
+    )
+  ) %>%
+  inner_join(hogares %>% select(folioviv, foliohog, ing_cor), 
+             by = c("folioviv", "foliohog")) %>%
+  group_by(categoria) %>%
+  summarise(
+    cantidad_hogares = n(),
+    ingreso_promedio = mean(ing_cor, na.rm = TRUE)
+  )
+```
+
+```{r}
+# Paso 1: Marcar empleados
+empleados <- trabajos %>%
+  distinct(folioviv, foliohog, numren) %>%
+  mutate(tiene_trabajo = TRUE)
+
+# Paso 2-5: Pipeline completo
+resultado <- personas %>%
+  left_join(empleados, by = c("folioviv", "foliohog", "numren")) %>%
+  mutate(tiene_trabajo = ifelse(is.na(tiene_trabajo), FALSE, TRUE)) %>%
+  group_by(folioviv, foliohog) %>%
+  summarise(
+    edad_laboral = sum(edad >= 18 & edad <= 65),
+    con_trabajo = sum(tiene_trabajo & edad >= 18 & edad <= 65),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    tasa_empleo = ifelse(edad_laboral > 0, 
+                         (con_trabajo / edad_laboral) * 100, 
+                         NA)
+  ) %>%
+  mutate(
+    categoria = case_when(
+      edad_laboral == 0 ~ "Sin población laboral",
+      tasa_empleo >= 75 ~ "Alta empleabilidad",
+      tasa_empleo >= 25 ~ "Media empleabilidad",
+      TRUE ~ "Baja empleabilidad"
+    )
+  ) %>%
+  inner_join(hogares %>% select(folioviv, foliohog, ing_cor), 
+             by = c("folioviv", "foliohog")) %>%
+  group_by(categoria) %>%
+  summarise(
+    cantidad_hogares = n(),
+    ingreso_promedio = mean(ing_cor, na.rm = TRUE)
+  )
+```
+
+```{r}
+resultado <- personas %>%
+  mutate(
+    clave = paste(folioviv, foliohog, numren, sep = "-"),
+    tiene_trabajo = clave %in% paste(trabajos$folioviv, trabajos$foliohog, trabajos$numren, sep = "-")
+  ) %>%
+  group_by(folioviv, foliohog) %>%
+  summarise(
+    edad_laboral = sum(edad >= 18 & edad <= 65),
+    con_trabajo = sum(tiene_trabajo & edad >= 18 & edad <= 65),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    tasa_empleo = ifelse(edad_laboral > 0, (con_trabajo / edad_laboral) * 100, NA),
+    categoria = case_when(
+      edad_laboral == 0 ~ "Sin población laboral",
+      tasa_empleo >= 75 ~ "Alta empleabilidad",
+      tasa_empleo >= 25 ~ "Media empleabilidad",
+      TRUE ~ "Baja empleabilidad"
+    )
+  ) %>%
+  inner_join(hogares %>% select(folioviv, foliohog, ing_cor), by = c("folioviv", "foliohog")) %>%
+  group_by(categoria) %>%
+  summarise(
+    cantidad_hogares = n(),
+    ingreso_promedio = mean(ing_cor, na.rm = TRUE)
+  )
+```
+
+---
+
+## **RESUMEN DEL FLUJO:**
+```
+trabajos → distinct(folioviv, foliohog, numren) → marcar empleados
+   ↓
+personas → left_join/marcar → tiene_trabajo TRUE/FALSE
+   ↓
+group_by(hogar) → contar edad_laboral y con_trabajo
+   ↓
+mutate → calcular tasa_empleo
+   ↓
+mutate → clasificar en categorías
+   ↓
+join con hogares → traer ing_cor
+   ↓
+group_by(categoria) → calcular estadísticas finales
+```
+#Enfoque metodológico correcto:
+1. Primero: Definir el universo (denominador)
+"Personas en edad laboral (18-65 años)"
+
+2. Segundo: Medir el fenómeno dentro de ese universo (numerador)
+"De esas, cuántas están empleadas"
+
+3. Tercero: Calcular el indicador
+
+
+```{r}
+personas %>%
+  # PASO 1: Definir el UNIVERSO (personas en edad laboral)
+  filter(edad >= 18 & edad <= 65) %>%
+  
+  # PASO 2: Marcar quiénes están EMPLEADAS dentro de ese universo
+  mutate(
+    clave = paste(folioviv, foliohog, numren, sep = "-"),
+    empleado = clave %in% paste(trabajos$folioviv, trabajos$foliohog, trabajos$numren, sep = "-")
+  ) %>%
+  
+  # PASO 3: Agrupar por hogar
+  group_by(folioviv, foliohog) %>%
+  summarise(
+    universo_laboral = n(),              # Denominador: todos en edad laboral
+    empleados = sum(empleado),     # Numerador: empleados dentro del universo
+    .groups = "drop"
+  ) %>%
+  
+  # PASO 4: Calcular el indicador
+  mutate(
+    tasa_empleo = (empleados / universo_laboral) * 100
+  )
+```
+
+### **Mi enfoque original:**
+
+1. Tomar TODAS las personas
+2. Marcar quién tiene trabajo
+3. Dentro de cada hogar, contar:
+   - Personas en edad laboral
+   - De esas, cuántas tienen trabajo
+
+
+### **Enfoque metodológico correcto:**
+1. Filtrar solo personas en edad laboral (UNIVERSO)
+2. Dentro de ese universo, marcar quién está empleado
+3. Calcular ratio
+
+
+# Ejercicio 4.6.4: Hogares con/sin diversidad educativa
+# Clasifica hogares según si tienen diversidad educativa:
+# - "Homogéneo": todos asisten O todos no asisten a la escuela
+# - "Diverso": algunos asisten y otros no
+# (Considera solo personas menores de 25 años)
+# Compara el gasto en educación de hogares homogéneos vs diversos.
+# Pista: usa n_distinct(asis_esc) después de filtrar por edad
+
+Alternativa 1
+```{r}
+personas %>%
+  filter(edad < 25) %>%
+  group_by(folioviv, foliohog) %>%
+  summarise(
+    todos_asisten = all(asis_esc == 1, na.rm = TRUE),
+    ninguno_asiste = all(asis_esc == 2, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    categoria = case_when(
+      todos_asisten ~ "Homogéneo",
+      ninguno_asiste ~ "Homogéneo",
+      TRUE ~ "Diverso"
+    )
+  )
+```
+
+#Alternativa 2
+```{r}
+personas %>%
+  # PASO 1: Definir UNIVERSO (menores de 25)
+  filter(edad < 25) %>%
+  
+  # PASO 2: Agrupar por hogar
+  group_by(folioviv, foliohog) %>%
+  
+  # PASO 3: Preguntar si hay diversidad
+  summarise(
+    cantidad_menores = n(),
+    valores_distintos = n_distinct(asis_esc),  # ¿Cuántos valores únicos?
+    .groups = "drop"
+  ) %>%
+  
+  # PASO 4: Clasificar
+  mutate(
+    categoria = ifelse(valores_distintos == 1, "Homogéneo", "Diverso")
+  )
+
+```
+
+
+  
+  
