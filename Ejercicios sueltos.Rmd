@@ -29,6 +29,15 @@ ingresos <- read_dta("ing_jal.dta")
 # Calcula el promedio de gasto en alimentos de todos los hogares.
 # Pista: usa summarise() y mean()
 
+
+
+
+```{r}
+hogares %>% summarise(media_alimentos = mean(alimentos, na.rm=TRUE))
+
+```
+
+
 ```{r}
 hogares %>% 
   summarise(media_gasto =  mean(gasto_mon, na.rm = TRUE))

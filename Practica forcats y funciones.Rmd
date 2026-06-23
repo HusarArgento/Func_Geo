@@ -1,0 +1,97 @@
+---
+title: "Practica 2"
+author: "Lucas"
+date: "2026-02-18"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+#Bibliotecas
+
+library(tidyverse)
+library(forcats)
+options(scipen=999)
+
+```
+
+
+```{r}
+lapop <- readr::read_csv("C:/Users/lucas/OneDrive/Estadistica y Ciencia de Datos/A2/Archivos/10.- Factores/lapop_mexico.csv")
+
+```
+
+
+```{r}
+colnames(lapop)
+names(lapop)[9:10] <- c("region", "entidad") #cambiar los nombres de las colunas de la 9 a la 10 por estos dos
+names(lapop)[16:18] <- c("sexo", "edad", "problema_mas_grave") #lo mismo de la 16 a la 18
+names(lapop)[22] <- "voto"
+names(lapop)[25:27] <- c("confianza_politica", "elecciones", "ingreso")
+
+
+```
+
+```{r}
+lapop <- lapop %>%
+mutate(region=as.factor(region), sexo=as.factor(sexo),
+entidad=as.factor(entidad), problema_mas_grave=as.factor(problema_mas_grave), voto=as.factor(voto),confianza_politica=as.factor(confianza_politica),
+elecciones=as.factor(elecciones),ingreso=as.factor(ingreso))
+
+unique(lapop$region)
+
+lapop %>%
+count(region)
+ggplot(lapop, aes(region))+
+geom_bar()
+
+```
+
+```{r}
+voto <- lapop %>%
+group_by(voto) %>%
+summarize(edad_promedio = mean(edad, na.rm = TRUE), n = n(),
+.groups='drop') #Agrupa por candidato (voto) y y en cada columna agrupada nos da la cantidad de votos y la edad 
+ggplot(voto, aes(edad_promedio, voto)) +
+geom_point(size=2, col="blue")
+
+```
+
+
+```{r}
+ingreso <- lapop %>%
+group_by(ingreso) %>%
+summarize(edad_promedio = mean(edad, na.rm = TRUE),n = n(),
+.groups='drop' )
+ggplot(ingreso, aes(edad_promedio, fct_reorder(ingreso, edad_promedio)))+
+geom_point(size=2, col="blue")
+```
+
+```{r}
+ggplot(ingreso,
+aes(edad_promedio, fct_relevel(ingreso, "Ningún ingreso", "No sabe", "No
+respon de"))) +
+geom_point(size=2, col="blue")
+```
+
+```{r}
+lapop %>%
+mutate(region = region %>% fct_infreq() %>% fct_rev()) %>%
+ggplot(aes(region)) +
+geom_bar(fill="blue")
+```
+
+
+```{r}
+ggplot(ingreso,
+aes(edad_promedio, fct_relevel(ingreso, "Ningún ingreso", "No sabe", "No
+respon de"))) +
+geom_point(size=2, col="blue")
+```
+
+
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.

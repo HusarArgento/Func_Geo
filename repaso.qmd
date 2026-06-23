@@ -1,0 +1,151 @@
+---
+title: "Repaso"
+author: "Lucas Melfi"
+format: html
+editor: visual
+---
+
+## Quarto
+
+Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.
+
+## Running Code
+
+When you click the **Render** button a document will be generated that includes both content and the output of embedded code. You can embed code like this:
+
+```{r}
+1 + 1
+```
+
+You can add options to executable code like this
+
+```{r}
+#| echo: false
+2 * 2
+```
+
+The `echo: false` option disables the printing of code (only output is displayed).
+
+
+# ===================================================================
+# BLOQUE 1: FILTROS Y AGREGACIONES BÁSICAS (Calentamiento)
+# ===================================================================
+
+# Ejercicio 1.1: Promedio de gasto en alimentos
+# Calcula el promedio de gasto en alimentos de todos los hogares.
+# Pista: usa summarise() y mean()
+
+```{r}
+hogares %>% 
+  summarise(media_alimentos = mean(alimentos, na.rm=TRUE))
+
+```
+
+
+# Ejercicio 1.2: Hogares con alto gasto en salud
+# Filtra los hogares que gastan más de 5000 en salud.
+# ¿Cuántos hogares son?
+# Pista: usa filter() y nrow() o count()
+
+```{r}
+hogares %>% 
+  filter(salud > 500) %>%
+  count()
+
+hogares %>% 
+  filter(salud > 500) %>%
+  nrow()
+
+```
+
+# Ejercicio 1.3: Distribución por sexo
+# Cuenta cuántas personas hay de cada sexo (1=Hombre, 2=Mujer).
+```{r}
+personas %>%
+  count(sexo)
+
+personas %>%
+  group_by(sexo) %>% 
+  summarise(n= n ())
+```
+
+# BLOQUE 2: JOINS SIMPLES (Relacionando tablas)
+# Ejercicio 2.1: Hogares con sus viviendas
+# Une la tabla de hogares con viviendas para ver el tipo de vivienda
+# de cada hogar.
+
+```{r}
+
+hog_viv <- hogares  %>%
+  left_join(viviendas, by="folioviv")
+
+#Seleccionando dos columnas solamente
+hog_viv2 <- hogares %>%
+  left_join(viviendas %>% select(folioviv, tipo_viv), by="folioviv")
+
+# ❌ Incorrecto
+select(columna_que_quiero)
+
+# ✅ Correcto
+select(columna_del_by, columna_que_quiero)
+
+```
+
+# Ejercicio 2.2: Personas en hogares de clase específica
+# Obtén todas las personas que viven en hogares de clase_hog = 1.
+
+```{r}
+ch1 <- left_join(personas, hogares, by=c("folioviv", "foliohog")) %>% filter(clase_hog==1)
+
+ch2  <- personas %>%
+  inner_join(hogares %>% 
+               filter(clase_hog == 1), by=c("folioviv", "foliohog"))
+ch3 <- personas %>%
+  semi_join(
+    hogares %>% filter(clase_hog == 1),
+    by = c("folioviv", "foliohog")
+  )
+
+```
+
+# Ejercicio 2.3: Hogares sin vivienda registrada
+# Encuentra hogares que NO tienen registro en la tabla viviendas.
+
+```{r}
+sh <- anti_join(hogares, viviendas, by="folioviv")
+
+```
+
+# ===================================================================
+# BLOQUE 3: AGREGACIONES CON GROUP_BY (Nivel medio)
+# ===================================================================
+
+# Ejercicio 3.1: Gasto promedio por ubicación geográfica
+# Calcula el gasto monetario promedio (gasto_mon) por ubica_geo.
+# Ordena de mayor a menor gasto.
+
+```{r}
+gasto_geo <- hogares %>%
+  group_by(ubica_geo) %>%
+  summarise(media_geo = mean(gasto_mon, na.rm = TRUE)) %>%
+  arrange(media_geo)
+```
+
+# Ejercicio 3.4: Porcentaje de analfabetismo por ubicación
+# Calcula qué porcentaje de personas NO sabe leer/escribir (alfabetism=2)
+# en cada ubica_geo.
+
+```{r}
+per_geo <- personas %>%
+  inner_join(hogares, by=c("folioviv", "foliohog"))%>% 
+  group_by(ubica_geo) %>%
+  summarise(total = n(), 
+            analfabetos = sum(alfabetism==2), 
+            porcentaje = (analfabetos / total)*100)
+
+per_geo2 <-  personas %>% 
+  inner_join(hogares, by=c("folioviv", "foliohog")) %>%
+  group_by(ubica_geo) %>%
+  summarise(porcentaje = mean(alfabetism==2)*100)
+```
+
