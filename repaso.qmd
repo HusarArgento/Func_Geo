@@ -26,13 +26,16 @@ You can add options to executable code like this
 
 The `echo: false` option disables the printing of code (only output is displayed).
 
-
 # ===================================================================
+
 # BLOQUE 1: FILTROS Y AGREGACIONES BÁSICAS (Calentamiento)
+
 # ===================================================================
 
 # Ejercicio 1.1: Promedio de gasto en alimentos
+
 # Calcula el promedio de gasto en alimentos de todos los hogares.
+
 # Pista: usa summarise() y mean()
 
 ```{r}
@@ -41,10 +44,12 @@ hogares %>%
 
 ```
 
-
 # Ejercicio 1.2: Hogares con alto gasto en salud
+
 # Filtra los hogares que gastan más de 5000 en salud.
+
 # ¿Cuántos hogares son?
+
 # Pista: usa filter() y nrow() o count()
 
 ```{r}
@@ -59,7 +64,9 @@ hogares %>%
 ```
 
 # Ejercicio 1.3: Distribución por sexo
+
 # Cuenta cuántas personas hay de cada sexo (1=Hombre, 2=Mujer).
+
 ```{r}
 personas %>%
   count(sexo)
@@ -70,8 +77,11 @@ personas %>%
 ```
 
 # BLOQUE 2: JOINS SIMPLES (Relacionando tablas)
+
 # Ejercicio 2.1: Hogares con sus viviendas
+
 # Une la tabla de hogares con viviendas para ver el tipo de vivienda
+
 # de cada hogar.
 
 ```{r}
@@ -92,6 +102,7 @@ select(columna_del_by, columna_que_quiero)
 ```
 
 # Ejercicio 2.2: Personas en hogares de clase específica
+
 # Obtén todas las personas que viven en hogares de clase_hog = 1.
 
 ```{r}
@@ -109,6 +120,7 @@ ch3 <- personas %>%
 ```
 
 # Ejercicio 2.3: Hogares sin vivienda registrada
+
 # Encuentra hogares que NO tienen registro en la tabla viviendas.
 
 ```{r}
@@ -117,11 +129,15 @@ sh <- anti_join(hogares, viviendas, by="folioviv")
 ```
 
 # ===================================================================
+
 # BLOQUE 3: AGREGACIONES CON GROUP_BY (Nivel medio)
+
 # ===================================================================
 
 # Ejercicio 3.1: Gasto promedio por ubicación geográfica
+
 # Calcula el gasto monetario promedio (gasto_mon) por ubica_geo.
+
 # Ordena de mayor a menor gasto.
 
 ```{r}
@@ -132,7 +148,9 @@ gasto_geo <- hogares %>%
 ```
 
 # Ejercicio 3.4: Porcentaje de analfabetismo por ubicación
+
 # Calcula qué porcentaje de personas NO sabe leer/escribir (alfabetism=2)
+
 # en cada ubica_geo.
 
 ```{r}
@@ -148,4 +166,48 @@ per_geo2 <-  personas %>%
   group_by(ubica_geo) %>%
   summarise(porcentaje = mean(alfabetism==2)*100)
 ```
+
+# ===================================================================
+# BLOQUE 4: FILTROS COMPLEJOS CON ALL/ANY (Desafiante)
+# ===================================================================
+
+# Ejercicio 4.1: Hogares donde TODOS tienen educación
+# Encuentra hogares donde todas las personas asisten a la escuela 
+# (asis_esc = 1) o son mayores de 18 años.
+
+```{r}
+fil4 <- hogares %>%
+  semi_join(
+    personas %>%
+      group_by(folioviv, foliohog) %>%
+      summarise(todos_cumplen = all(asis_esc == 1 | edad > 18, na.rm = TRUE), .groups = "drop") %>%
+      filter(todos_cumplen),
+    by = c("folioviv", "foliohog")
+  )
+#menos costo computacional, trabajas sobre una planilla y hace el join 
+
+fil4_1 <- personas %>%
+  group_by(folioviv, foliohog) %>%
+  summarise(todos_cumplen = all(asis_esc == 1 | edad > 18, na.rm = TRUE), .groups = "drop") %>%
+  filter(todos_cumplen) %>%
+  inner_join(hogares, by = c("folioviv", "foliohog"))
+
+
+
+```
+
+# Ejercicio 4.2: Hogares con AL MENOS un trabajador
+# Identifica hogares donde al menos una persona tiene trabajo registrado
+# en la tabla trabajos
+
+
+```{r}
+trabajos %>% distinct(folioviv, foliohog) 
+trabajos %>% distinct(folioviv, foliohog) %>% nrow()
+
+```
+# Ejercicio 4.3: Hogares donde NADIE habla lengua indígena
+# Encuentra hogares donde ninguna persona habla lengua indígena 
+# (hablaind = 2 significa NO habla).
+
 
