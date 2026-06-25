@@ -168,11 +168,15 @@ per_geo2 <-  personas %>%
 ```
 
 # ===================================================================
+
 # BLOQUE 4: FILTROS COMPLEJOS CON ALL/ANY (Desafiante)
+
 # ===================================================================
 
 # Ejercicio 4.1: Hogares donde TODOS tienen educación
-# Encuentra hogares donde todas las personas asisten a la escuela 
+
+# Encuentra hogares donde todas las personas asisten a la escuela
+
 # (asis_esc = 1) o son mayores de 18 años.
 
 ```{r}
@@ -197,17 +201,91 @@ fil4_1 <- personas %>%
 ```
 
 # Ejercicio 4.2: Hogares con AL MENOS un trabajador
-# Identifica hogares donde al menos una persona tiene trabajo registrado
-# en la tabla trabajos
 
+# Identifica hogares donde al menos una persona tiene trabajo registrado
+
+# en la tabla trabajos
 
 ```{r}
 trabajos %>% distinct(folioviv, foliohog) 
 trabajos %>% distinct(folioviv, foliohog) %>% nrow()
 
 ```
+
 # Ejercicio 4.3: Hogares donde NADIE habla lengua indígena
-# Encuentra hogares donde ninguna persona habla lengua indígena 
+
+# Encuentra hogares donde ninguna persona habla lengua indígena
+
 # (hablaind = 2 significa NO habla).
 
+```{r}
+personas %>%
+  group_by(folioviv, foliohog) %>%
+  summarise(
+    nadie_habla_indigena = all(hablaind == 2, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  filter(nadie_habla_indigena)
 
+```
+
+# BLOQUE 4.5: EJERCICIOS ADICIONALES - PRÁCTICA INTENSIVA
+# (Mismo nivel que Bloque 4, más variedad)
+# ===================================================================
+
+# Ejercicio 4.5.1: Hogares sin menores de edad
+# Encuentra hogares donde TODAS las personas son mayores de 18 años.
+
+```{r}
+personas %>%
+  group_by(folioviv, foliohog)%>%
+  summarise(
+    hog_18 = all(edad >= 18, na.rm=TRUE), 
+    .groups = "drop")%>%
+  filter(hog_18)%>%
+  nrow()
+
+```
+# Ejercicio 4.5.2: Hogares con diversidad de edades
+# Encuentra hogares que tengan AL MENOS una persona menor de 18 Y
+# AL MENOS una persona mayor de 60.
+
+```{r}
+#mezclados
+personas %>%
+  group_by(folioviv, foliohog) %>%
+  summarise(
+    diversidad = any(edad < 18, na.rm = TRUE) & any(edad > 60, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  filter(diversidad)
+
+#separados
+personas %>%
+  group_by(folioviv, foliohog) %>%
+  summarise(
+    tiene_menores = any(edad < 18, na.rm = TRUE),    # ¿Hay menores?
+    tiene_mayores = any(edad > 60, na.rm = TRUE),    # ¿Hay mayores?
+    .groups = "drop"
+  ) %>%
+  filter(tiene_menores & tiene_mayores)  # AMBAS condiciones
+
+```
+# Ejercicio 4.5.3: Hogares completamente alfabetizados con niños
+# Encuentra hogares donde:
+# - TODAS las personas son alfabetizadas (alfabetism == 1)
+# - Y tienen AL MENOS un menor de 12 años
+
+```{r}
+personas %>%
+  group_by(folioviv, foliohog) %>%
+  summarise(
+    alfab_hijos= all(alfabetism == 1, na.rm = TRUE) & any(edad>=1, na.rm = TRUE), 
+            .groups = "drop")%>%
+  filter(alfab_hijos)%>%
+  nrow()
+
+```
+
+# Ejercicio 4.5.4: Hogares sin ingresos registrados
+# Encuentra hogares que NO tienen ningún registro en la tabla ingresos.
