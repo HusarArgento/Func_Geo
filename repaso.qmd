@@ -348,19 +348,50 @@ personas %>%
             sex_f = all(sexo == 2, na.rm = TRUE),
             .groups = "drop")%>%
   filter(sex_m | sex_f) %>% 
-  nrow()
+  nrow() #number of rows: devuelve cuantas filas hay
 
-personas %>%
-  group_by(folioviv, foliohog) %>%
-  summarise(
-    mismo_sexo = n_distinct(sexo, na.rm = TRUE) == 1,
-    .groups = "drop"
-  ) %>%
-  filter(mismo_sexo) %>%
-  nrow()
+  personas %>%
+    group_by(folioviv, foliohog) %>%
+    summarise(
+      mismo_sexo = n_distinct(sexo, na.rm = TRUE) == 1,
+      .groups = "drop"
+    ) %>%
+    filter(mismo_sexo) %>%
+    nrow()
 #No le pide que tome las filas con sexo 1, sino le dice que cuente los hogares cuyas filas (personas) son todas de un mismo valor
 
 ```
+```{r}
+
+n_distinct(folioviv, foliohog)
+
+#Es una función de dplyr que cuenta cuántos valores distintos hay en una variable.
+#En este caso cuenta combinaciones únicas de vivienda-hogar.
+
+```
+
+#es casi equivalente a:
+```{r}
+trabajos %>%
+  distinct(folioviv, foliohog) %>%
+  nrow()
+```
+
+#Es decir:
+
+distinct() crea la tabla de hogares únicos.
+nrow() cuenta cuántas filas tiene.
+
+n_distinct() hace ambas cosas en un solo paso.
+
+Por eso suele verse mucho dentro de summarise().
+
+#Hay funciones que trabajan dentro de los grupos: 
+(n(), n_distinct(), mean(), sum(), any(), all())  
+
+#Hay funciones que actúan sobre el resultado final: 
+(filter(), nrow(), arrange(), etc.).
+
 # Ejercicio 4.5.8: Hogares con alta asistencia escolar
 # Encuentra hogares donde TODAS las personas menores de 18 años
 # asisten a la escuela (asis_esc == 1).
