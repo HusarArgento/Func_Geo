@@ -315,3 +315,57 @@ hogares %>%
 # - Al menos una persona entre 18-59 años (adultos)
 # - Al menos una persona >= 60 años (adultos mayores)
 
+```{r}
+personas %>%
+  group_by(folioviv, foliohog) %>%
+  summarise(multigen = any(edad<18, na.rm = TRUE) & any(edad ==18 & edad<=59, na.rm = TRUE) & any(edad>=60, na.rm = TRUE), 
+            .groups = "drop")%>%
+  filter(multigen)%>%
+  nrow()
+
+
+#alternativa
+personas %>%
+  group_by(folioviv, foliohog) %>%
+  summarise(
+    tiene_menor  = any(!is.na(edad) & edad < 18),
+    tiene_adulto = any(!is.na(edad) & edad >= 18 & edad <= 59),
+    tiene_mayor  = any(!is.na(edad) & edad >= 60),
+    .groups = "drop"
+  ) %>%
+  filter(tiene_menor & tiene_adulto & tiene_mayor) %>%
+  nrow()
+
+```
+# Ejercicio 4.5.7: Hogares homogéneos por sexo
+# Encuentra hogares donde TODAS las personas son del mismo sexo.
+```{r}
+
+#alternativa para ver cuandos de cada uno
+personas %>%
+  group_by(folioviv, foliohog) %>%
+  summarise(sex_m = all(sexo == 1, na.rm = TRUE),
+            sex_f = all(sexo == 2, na.rm = TRUE),
+            .groups = "drop")%>%
+  filter(sex_m | sex_f) %>% 
+  nrow()
+
+personas %>%
+  group_by(folioviv, foliohog) %>%
+  summarise(
+    mismo_sexo = n_distinct(sexo, na.rm = TRUE) == 1,
+    .groups = "drop"
+  ) %>%
+  filter(mismo_sexo) %>%
+  nrow()
+#No le pide que tome las filas con sexo 1, sino le dice que cuente los hogares cuyas filas (personas) son todas de un mismo valor
+
+```
+# Ejercicio 4.5.8: Hogares con alta asistencia escolar
+# Encuentra hogares donde TODAS las personas menores de 18 años
+# asisten a la escuela (asis_esc == 1).
+
+```{r}
+
+```
+
