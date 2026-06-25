@@ -289,3 +289,29 @@ personas %>%
 
 # Ejercicio 4.5.4: Hogares sin ingresos registrados
 # Encuentra hogares que NO tienen ningún registro en la tabla ingresos.
+
+```{r}
+hogares %>% anti_join(ingresos, by=c("folioviv", "foliohog"))
+
+# devuelve filas de la tabla izquierda que NO tienen coincidencia en la tabla derecha.
+
+```
+
+# Ejercicio 4.5.5: Hogares donde nadie trabaja
+# Encuentra hogares que NO tienen ninguna persona registrada en trabajos.
+# ¿Cuántos hogares son? ¿Cuál es su gasto promedio?
+
+```{r}
+hogares %>% 
+  anti_join(trabajos, by=c("folioviv", "foliohog"))%>%
+  summarise(cant_hog = n(), 
+            gasto_medio = mean(gasto_mon))
+  
+
+```
+# Ejercicio 4.5.6: Hogares multigeneracionales
+# Encuentra hogares con AL MENOS 3 generaciones:
+# - Al menos una persona < 18 años (niños)
+# - Al menos una persona entre 18-59 años (adultos)
+# - Al menos una persona >= 60 años (adultos mayores)
+
