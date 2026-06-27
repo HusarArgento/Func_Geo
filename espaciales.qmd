@@ -27,12 +27,12 @@ You can add options to executable code like this
 The `echo: false` option disables the printing of code (only output is displayed).
 
 ```{r}
-1install.packages("rnaturalearth")
-library(rnaturalearth)
+install.packages("sf")
+install.packages("rnaturalearth")
 install.packages("pak")
 install.packages("tidyverse")
+library(rnaturalearth)
 library(tidyverse)
-install.packages("sf")
 library(sf)
 
 
@@ -61,7 +61,56 @@ mapa |>
 ```
 ```{r}
 mapa_centroide <- mapa |> 
-  select(region, geometry) |> 
-  mutate(centroide = st_centroid(geometry))
+  select(region, geometry) |> #selecciona las columnas region y geometry
+  mutate(centroide = st_centroid(geometry)) #crea la columna centroide y pone ahi el calculo del centroide 
+```
+
+```{r}
+mapa_centroide_coordenadas <- mapa_centroide |> 
+  mutate(lon = st_coordinates(centroide)[,1], #crea la columna lon y ahi pone la coordenada 1(longitud)
+         lat = st_coordinates(centroide)[,2]) #crea la columna lat y ahi pone la coordenada 2 (latitud)
+```
+
+#GRafico del centroide
+
+```{r}
+mapa_centroide |> 
+  filter(region == mapa$region[3]) |> 
+  ggplot() +
+  # mapa
+  geom_sf(fill = "#9069C0", 
+          linewidth = NA) +
+  # capa del punto
+  geom_sf(
+    aes(geometry = centroide),
+    color = "#402E5A",
+    size = 3, alpha = 1) +
+  # texto bajo el punto
+  geom_sf_text(
+    aes(geometry = centroide),
+    label = "centroide Jujuy", size = 3,
+    vjust = 2)
+```
+#Buffer
+
+```{r}
+mapa_buffer <- mapa |> 
+  # filtrar una región/polígono
+  filter(region == mapa$region[3]) |> 
+  # crear buffer
+  mutate(buffer = st_buffer(geometry, 
+                            dist = 20000, #distancia del buffer
+                            max_cells = 10000)) #poligonos
+```
+
+```{r}
+mapa_buffer |> 
+  ggplot() +
+  # capa de la región
+  geom_sf(aes(geometry = geometry), 
+          fill = "#9069C0", linewidth = NA) +
+  # capa del buffer
+  geom_sf(aes(geometry = buffer), 
+          fill = "#9069C0", alpha = 0.5, linewidth = NA)
 ```
 
