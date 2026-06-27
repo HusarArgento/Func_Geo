@@ -33,15 +33,12 @@ ingresos <- read_dta("ing_jal.dta")
 
 
 ```{r}
-hogares %>% summarise(media_alimentos = mean(alimentos, na.rm=TRUE))
+media_alimentos <- hogares %>% 
+  summarise(media_alimentos = mean(alimentos, na.rm=TRUE))
 
 ```
 
 
-```{r}
-hogares %>% 
-  summarise(media_gasto =  mean(gasto_mon, na.rm = TRUE))
-```
 
 # Ejercicio 1.2: Hogares con alto gasto en salud
 # Filtra los hogares que gastan más de 5000 en salud.
@@ -119,7 +116,6 @@ ingresos %>% group_by(folioviv, foliohog) %>% summarise(total = sum(ing_tri, na.
 # en cada ubica_geo.
 
 ```{r}
-
 
 hog3 <- personas %>% 
   inner_join(hogares, by=c("folioviv", "foliohog")) %>%
