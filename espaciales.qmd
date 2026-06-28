@@ -38,7 +38,6 @@ library(sf)
 
 ```
 
-
 ```{r}
 
 pais <- ne_states("Argentina")
@@ -52,6 +51,7 @@ mapa
 
 
 ```
+
 ```{r}
 mapa |> 
   ggplot() +
@@ -59,6 +59,7 @@ mapa |>
           color = "#EBD2FA",
           linewidth = 0.4)
 ```
+
 ```{r}
 mapa_centroide <- mapa |> 
   select(region, geometry) |> #selecciona las columnas region y geometry
@@ -91,6 +92,7 @@ mapa_centroide |>
     label = "centroide Jujuy", size = 3,
     vjust = 2)
 ```
+
 #Buffer
 
 ```{r}
@@ -112,5 +114,57 @@ mapa_buffer |>
   # capa del buffer
   geom_sf(aes(geometry = buffer), 
           fill = "#9069C0", alpha = 0.5, linewidth = NA)
+```
+
+
+```{r}
+caja <- st_bbox(mapa)
+caja
+```
+
+```{r}
+rectangulo <- caja |> 
+  st_as_sfc(crs = st_crs(mapa))
+```
+
+```{r}
+ggplot() +
+  # mapa de fondo
+  geom_sf(data = mapa,
+          fill = "#9069C0", color = "#EBD2FB",
+          linewidth = 0.1) +
+  # capa con la caja encima
+  geom_sf(data = rectangulo,
+          fill = "#9069C0", color = "#9069C0", 
+          linewidth = 0.8, alpha = 0.4) +
+  # tema
+  theme(axis.text = element_blank(),
+        panel.background = element_blank())
+```
+
+```{r}
+coordenadas <- tibble(longitud = -70, 
+                      latitud = -38)
+
+# convertir tabla a sf
+punto <- coordenadas |> 
+  st_as_sf(coords = c("longitud", "latitud"), 
+           crs = st_crs(mapa))
+```
+
+```{r}
+ggplot() +
+  # mapa de fondo
+  geom_sf(data = mapa,
+          fill = "#9069C0", color = "#EBD2FB",
+          linewidth = 0.1) +
+  # capa con el punto
+  geom_sf(data = punto,
+          color = "#402E5A",
+          size = 3, alpha = .5)
+```
+
+```{r}
+
 ```
 
