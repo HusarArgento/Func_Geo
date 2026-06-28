@@ -163,8 +163,119 @@ ggplot() +
           color = "#402E5A",
           size = 3, alpha = .5)
 ```
+#Mas de una coordenada
+```{r}
+coordenadas <- tribble(~nombre, ~lon, ~lat, ~n,
+                       "A",  -69,  -38,  4,
+                       "B",  -65,  -37,  6,
+                       "C",  -61,  -36,  9)
+
+puntos <- coordenadas |> 
+  # convertir tabla a sf
+  st_as_sf(coords = c("lon", "lat"), 
+           crs = st_crs(mapa))
+```
 
 ```{r}
+ggplot() +
+  # mapa de fondo
+  geom_sf(data = mapa,
+          fill = "#9069C0", color = "#EBD2FB",
+          linewidth = 0.1) +
+  # capa con puntos
+  geom_sf(data = puntos,
+          aes(size = n),
+          color = "#402E5A",
+          alpha = .5) +
+  # capa con textos
+  geom_sf_label(data = puntos,
+                aes(label = nombre),
+                size = 3, vjust = -0.8,
+                fontface = "bold") +
+  # escala de tamaño
+  scale_size(range = c(3, 6),
+             breaks = scales::breaks_pretty(n = 3)) +
+  guides(size = guide_legend(override.aes = list(color = "#9069C0", 
+                                                 alpha = 1)))
+```
 
+```{r}
+coordenadas <- tibble(longitud = -58, latitud = -38)
+
+punto <- coordenadas |> 
+  # convertir tabla a sf
+  st_as_sf(coords = c("longitud", "latitud"), 
+           crs = st_crs(mapa))
+
+cuadrado <- punto |> 
+  st_buffer(dist = 100000) |> # agrandar punto
+  st_bbox() |> # crear caja al rededor
+  st_as_sfc(crs = st_crs(mapa)) # convertir a sf
+```
+
+```{r}
+ggplot() +
+  # mapa de fondo
+  geom_sf(data = mapa,
+          fill = "#9069C0", color = "#EBD2FB",
+          linewidth = 0.1, alpha = .7) +
+  # capa con puntos
+  geom_sf(data = cuadrado,
+          fill = NA,
+          linewidth = 0.8, 
+          linejoin = "mitre", #linejoin = "round",
+          color = "#402E5A") +
+  coord_sf(xlim = c(-72, -56),
+           ylim = c(-40, -30))
+```
+```{r}
+# tabla con coordenadas
+coordenadas <- tribble(~nombre, ~lon, ~lat, ~n,
+                       "A",  -69,  -38,  4,
+                       "B",  -65,  -37,  6,
+                       "C",  -61,  -36,  9)
+
+# convertir coordenadas a puntos
+puntos <- coordenadas |> 
+  # convertir tabla a sf
+  st_as_sf(coords = c("lon", "lat"), 
+           crs = st_crs(mapa))
+
+# convertir puntos a rectándulo
+rectangulo <- puntos |> 
+  st_buffer(dist = 80000) |> # ampliar
+  st_bbox() |> 
+  st_as_sfc(crs = st_crs(mapa))
+```
+
+```{r}
+ggplot() +
+  # mapa de fondo
+  geom_sf(data = mapa,
+          fill = "#9069C0", color = "#EBD2FB",
+          linewidth = 0.2, alpha = .7) +
+  # capa con puntos
+  geom_sf(data = puntos,
+          alpha = .5) +
+  geom_sf(data = rectangulo,
+          fill = NA, color = "#402E5A", lwd = 0.7)
+```
+
+```{r}
+coordenadas <- tribble(~nombre, ~lon, ~lat,
+                       "A", -68,  -36,
+                       "B", -64,  -31,
+                       "C", -60,  -36)
+
+# convertir tabla a sf
+puntos <- coordenadas |> 
+  st_as_sf(coords = c("lon", "lat"), 
+           crs = st_crs(mapa))
+
+poligono <- puntos |> 
+  # combinar coordenadas en un solo elemento
+  summarise(geometry = st_combine(geometry)) |> 
+  # convertir puntos a polígono
+  st_cast("POLYGON")
 ```
 
