@@ -69,3 +69,87 @@ Después de usar la herramienta, ¿soy capaz de resolver un problema parecido si
 -  **¿Qué objeto o resultado sale al final?**
 
 - **¿Qué habría pasado si quitara esta línea?**
+
+# Método de análisis de código (Versión 1.0)
+
+## 1. Objetivo
+
+**¿Qué quiso hacer el autor?**
+
+No me describís el código todavía.
+
+Me decís la intención.
+
+Ejemplo:
+
+> "Quiere calcular el centroide de cada país."
+
+## 2. Flujo de datos
+
+Contestás siempre estas preguntas:
+
+- ¿Qué objeto entra?
+
+- ¿Qué objeto sale?
+
+- ¿Qué cambia?
+
+- ¿Qué se conserva?
+
+- ¿Qué tipo de objeto queda?
+
+Este punto me gustó mucho cómo lo resolviste hoy.
+
+## 3. Función protagonista
+
+No siempre la función más importante es la primera que aparece.
+
+Ejemplo:
+
+```         
+mutate(   centroide = st_centroid(geometry) ) 
+```
+
+La protagonista es `st_centroid()`.
+
+`mutate()` es el "contenedor" donde se guarda el resultado.
+
+Esto te va a ayudar muchísimo cuando los códigos sean más largos.
+
+## 4. ¿Por qué el autor lo hizo así?
+
+Esta es la parte de pensamiento crítico.
+
+Por ejemplo:
+
+- ¿Era necesario ese `select()`?
+
+- ¿Podía hacerlo de otra forma?
+
+- ¿Está simplificando el objeto?
+
+- ¿Está preparando el terreno para una operación posterior?
+
+No buscamos "la respuesta correcta", sino justificar una decisión de diseño.
+
+Hay un concepto en educación que se llama **carga cognitiva**. La idea es que la memoria de trabajo tiene una capacidad limitada. Si al mismo tiempo tenés que:
+
+- entender `sf`,
+
+- entender `dplyr`,
+
+- pensar en el flujo de datos,
+
+- analizar el diseño del código,
+
+- y además predecir modificaciones,
+
+es fácil saturarse.
+
+En cambio, si primero automatizamos las primeras cuatro preguntas, después la quinta ("¿qué pasaría si...?") va a salir mucho más natural.
+
+Si veo que una pregunta es demasiado difícil para el momento en que estás, no voy a insistir. La idea no es ponerte a prueba, sino construir un modo de pensar.
+
+De hecho, hoy ya aprendí algo sobre cómo aprendés vos. Cuando te dejo unos segundos para elaborar una hipótesis, llegás a respuestas mucho más profundas que si te doy la explicación inmediatamente. Así que voy a intentar respetar más esos tiempos.
+
+Creo que esta dinámica, sostenida durante unos meses, no solo te va a ayudar con R. También te va a dar una forma bastante sólida de leer código ajeno, ya sea en `sf`, `tidyverse`, `r5r` o incluso en otros lenguajes que aprendas más adelante.

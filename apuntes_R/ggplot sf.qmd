@@ -1,0 +1,82 @@
+---
+title: "Ggplot Geom Sf"
+author: "Lucas Melfi"
+format: html
+editor: visual
+---
+
+## Quarto
+
+Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.
+
+## Running Code
+
+When you click the **Render** button a document will be generated that includes both content and the output of embedded code. You can embed code like this:
+
+```{r}
+1 + 1
+```
+
+You can add options to executable code like this
+
+```{r}
+#| echo: false
+2 * 2
+```
+
+The `echo: false` option disables the printing of code (only output is displayed).
+
+```{r}
+mapa |> 
+  ggplot() +
+  geom_sf(fill = "#9069C0", 
+          color = "#EBD2FA",
+          linewidth = 0.4)
+```
+
+**`ggplot()` no dibuja nada todavía**.
+
+Lo que hace es crear un lienzo vacío. Es como abrir un PowerPoint en blanco. Todavía no hay gráficos.
+
+`geom_sf()` sabe interpretar automáticamente objetos `sf`. Aca sí aparece el mapa
+
+Es decir:
+
+>  "Encontré una columna `geometry`, así que voy a dibujar esas geometrías."
+
+Esto es una diferencia enorme respecto de otros gráficos. Por ejemplo, con un scatterplot vos tenés que decir:
+
+Por ejemplo, con un scatterplot vos tenés que decir:
+
+```         
+aes(x = ..., y = ...)
+```
+
+Con `geom_sf()` no.
+
+Él encuentra la geometría solo. Ese detalle conceptual es importante.
+
+Una pregunta que siempre me hago cuando veo un código de `ggplot` es:
+
+> **¿Hay algún `aes()`?**
+
+En este código no. Eso significa que:
+
+-  todos los polígonos tendrán exactamente el mismo color;
+
+-  todos los bordes tendrán el mismo grosor;
+
+-  todos los bordes tendrán el mismo color.
+
+No hay ninguna variable del dataset controlando la apariencia.
+
+Es un mapa "estático". Si hubiera escrito:
+
+```{r}
+geom_sf(aes(fill = region))
+
+```
+
+entonces cada región tendría un color distinto.
+
+Esa diferencia entre **estética fija** y **estética mapeada a una variable** es uno de los conceptos más importantes de `ggplot2`.
