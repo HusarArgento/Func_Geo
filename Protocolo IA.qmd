@@ -1,0 +1,71 @@
+---
+title: "Protocolo uso IA"
+format: pdf
+editor: visual
+---
+
+## **Protocolo personal de uso de la IA en Codigo**
+
+#### Cuando encuentres un código que no entendés
+
+```{text}
+
+1.   Leelo solo durante unos minutos.
+
+2.   Escribí una hipótesis de qué hace cada línea.
+
+3.   Recién después preguntame.
+
+4.   Compará tu hipótesis con la explicación.
+
+```
+
+Ese pequeño paso cambia mucho la forma en que se consolida el aprendizaje.
+
+Hay una práctica que creo que tendría muchísimo impacto para vos.
+
+Cada vez que me traigas un código del profesor, hacé esto antes:
+
+**"Esta es mi interpretación. Creo que la línea 1 hace esto, la línea 2 hace esto, pero no entiendo la línea 3."**
+
+Aunque tu interpretación sea incorrecta.
+
+¿Por qué?
+
+Porque me obliga a corregir un razonamiento ya construido, en lugar de construirlo desde cero por vos. Ese tipo de interacción suele favorecer un aprendizaje más profundo.
+
+En síntesis, con lo que he visto hasta ahora, me parece que estás usando la IA principalmente como un profesor particular y una herramienta de documentación, más que como un sustituto del razonamiento. Mantener el hábito de formular primero tus propias hipótesis es probablemente la mejor forma de evitar que ese equilibrio cambie con el tiempo.
+
+Si yo tuviera que redactarlo para alguien con tu perfil, incluiría principios como estos:
+
+```{text}
+
+1.  **Primero intento entender el problema.** Dedico unos minutos a leer el código o el ejercicio antes de consultar.
+
+2.  **Formulo una hipótesis.** Aunque sea incompleta o incorrecta, escribo qué creo que hace cada parte.
+
+3.  **Pregunto sobre lo que no entiendo.** Intento que la consulta sea específica, no simplemente "explicame todo".
+
+4.  **Reescribo la explicación con mis palabras.** Si no puedo hacerlo, probablemente todavía no entendí el concepto.
+
+5.  **Aplico el concepto en un ejemplo nuevo.** No doy por aprendido algo solo porque la explicación me resultó clara.
+
+6.  **Conservo mis apuntes.** Cada explicación útil se transforma en documentación propia.}
+
+```
+
+Después de usar la herramienta, ¿soy capaz de resolver un problema parecido sin ella?
+
+**¿Qué objeto entra?** (`mapa`, `datos`, `escuelas`, etc.)
+
+-  **¿Qué función principal hace el trabajo?** (`filter()`, `geom_sf()`, `st_buffer()`, etc.)
+
+<!-- -->
+
+-  **¿Qué cambia respecto del objeto original?**
+
+<!-- -->
+
+-  **¿Qué objeto o resultado sale al final?**
+
+- **¿Qué habría pasado si quitara esta línea?**
