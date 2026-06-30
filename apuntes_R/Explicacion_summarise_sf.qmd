@@ -167,4 +167,81 @@ Recién sobre esa hoja única puede dibujarse el polígono.
 
 En `sf`, `summarise()` no se usa únicamente para obtener promedios o sumas.
 
-También sirve para **condensar varias entidades espaciales en una sola**, permitiendo luego realizar operaciones como disolver polígonos, combinar líneas o construir nuevas geometrías a partir de varias existentes. Bien
+También sirve para **condensar varias entidades espaciales en una sola**, permitiendo luego realizar operaciones como disolver polígonos, combinar líneas o construir nuevas geometrías a partir de varias existentes.
+
+## St_bbox
+
+`st_bbox()` no dibuja nada.
+
+Lo único que hace es calcular cuatro números.
+
+Algo así:
+
+```{text}
+
+xmin
+
+ymin
+
+xmax
+
+ymax
+
+```
+
+Es decir:
+
+>  ¿Cuál es el extremo más al oeste?
+>
+> ¿Cuál es el extremo más al este?
+>
+> ¿Cuál es el extremo más al sur?
+>
+> ¿Cuál es el extremo más al norte?
+
+Y esos cuatro valores describen un rectángulo.
+
+Eso **no es una geometría**.
+
+Es solamente una descripción.
+
+Para poder hacer cosas como:
+
+```{text}
+
+geom_sf()
+
+plot()
+
+st_intersection()
+```
+
+necesitás una geometría.
+
+Por eso aparece
+
+```{text}
+
+st_as_sfc()
+```
+
+```{text}
+
+Puntos
+
+↓
+
+Buffers
+
+↓
+
+Bounding Box
+```
+
+Hay funciones que trabajan:
+
+-  **sobre cada geometría individual** (`st_area()`, `st_centroid()`, `st_buffer()`, etc.);
+
+-  **sobre el objeto espacial completo** (`st_bbox()`, por ejemplo).
+
+Esa diferencia va a aparecer una y otra vez en `sf`.

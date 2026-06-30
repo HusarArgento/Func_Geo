@@ -42,7 +42,7 @@ Lo que hace es crear un lienzo vacío. Es como abrir un PowerPoint en blanco. To
 
 Es decir:
 
->  "Encontré una columna `geometry`, así que voy a dibujar esas geometrías."
+> "Encontré una columna `geometry`, así que voy a dibujar esas geometrías."
 
 Esto es una diferencia enorme respecto de otros gráficos. Por ejemplo, con un scatterplot vos tenés que decir:
 
@@ -62,21 +62,42 @@ Una pregunta que siempre me hago cuando veo un código de `ggplot` es:
 
 En este código no. Eso significa que:
 
--  todos los polígonos tendrán exactamente el mismo color;
+- todos los polígonos tendrán exactamente el mismo color;
 
--  todos los bordes tendrán el mismo grosor;
+- todos los bordes tendrán el mismo grosor;
 
--  todos los bordes tendrán el mismo color.
+- todos los bordes tendrán el mismo color.
 
 No hay ninguna variable del dataset controlando la apariencia.
 
 Es un mapa "estático". Si hubiera escrito:
 
 ```{r}
+
 geom_sf(aes(fill = region))
 
 ```
 
-entonces cada región tendría un color distinto.
+Entonces cada región tendría un color distinto.
 
 Esa diferencia entre **estética fija** y **estética mapeada a una variable** es uno de los conceptos más importantes de `ggplot2`.
+
+## Una observación importante sobre `ggplot2`
+
+Acá aparece una regla que te va a servir muchísimo en el futuro:
+
+> **Las funciones `scale_*()` siempre modifican una estética específica.**
+
+Por ejemplo:
+
+```{text}
+
+scale_size()` → modifica la estética **`size`**.
+
+scale_color_*()` → modifica la estética **`color`**.
+
+scale_fill_*()` → modifica la estética **`fill`**.
+
+scale_alpha()` → modifica la estética **`alpha`**.
+
+```

@@ -31,12 +31,16 @@ install.packages("sf")
 install.packages("rnaturalearth")
 install.packages("pak")
 install.packages("tidyverse")
+
+```
+
+```{r}
 library(rnaturalearth)
 library(tidyverse)
 library(sf)
 
-
 ```
+
 
 ```{r}
 
@@ -277,5 +281,20 @@ poligono <- puntos |>
   summarise(geometry = st_combine(geometry)) |> 
   # convertir puntos a polígono
   st_cast("POLYGON")
+```
+
+```{r}
+ggplot() +
+  # mapa de fondo
+  geom_sf(data = mapa,
+          fill = "#9069C0", color = "#E0C7F0",
+          linewidth = 0.2, alpha = 0.7) +
+  # capa con puntos
+  geom_sf(data = puntos,
+          alpha = .6) +
+  # capa con polígono
+  geom_sf(data = poligono,
+          fill = "#402E5A", color = "#402E5A",
+          lwd = 0.7, alpha = 0.7)
 ```
 

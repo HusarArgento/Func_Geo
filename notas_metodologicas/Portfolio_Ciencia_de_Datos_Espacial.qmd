@@ -1,0 +1,83 @@
+---
+title: "Estructura sugerida para un Portfolio de Ciencia de Datos Espacial"
+format: html
+---
+
+# Filosofía del portfolio
+
+La idea no es construir un portfolio de herramientas, sino un **portfolio de investigaciones reproducibles**. El foco debe estar en responder preguntas mediante datos, utilizando R, SIG, Power BI y otras herramientas cuando sean necesarias.
+
+# Estructura sugerida para cada proyecto
+
+## 1. La pregunta
+
+Comenzar con una pregunta clara.
+
+> ¿Existe una relación entre la infraestructura portuaria y el perfil exportador de las provincias argentinas?
+
+## 2. Hipótesis
+
+Plantear una hipótesis inicial.
+
+> Se espera que las provincias con menor costo logístico presenten una mayor diversificación exportadora.
+
+## 3. Datos
+
+| Fuente | Año | Formato | Observaciones |
+|---|---:|---|---|
+| INDEC | 2024 | CSV | Exportaciones provinciales |
+| IGN | 2025 | SHP | Límites provinciales |
+| OpenStreetMap | 2025 | OSM | Infraestructura logística |
+
+## 4. Metodología
+
+```text
+Datos
+↓
+Limpieza
+↓
+Unión espacial
+↓
+Buffers
+↓
+Cálculo de distancias
+↓
+Visualización
+↓
+Conclusiones
+```
+
+## 5. Notas metodológicas
+
+- ¿Por qué se reproyectó la capa? Porque las distancias se calculan en metros.
+- ¿Por qué se utilizó un buffer? Para representar un área de influencia.
+- ¿Por qué se empleó un centroide? Solo para ubicar etiquetas.
+- ¿Qué limitaciones tiene el análisis? La distancia euclidiana no siempre representa recorridos reales.
+
+## 6. Código comentado
+
+Comentar únicamente decisiones metodológicas importantes.
+
+```r
+# Se transforma a un CRS proyectado para trabajar en metros.
+provincias <- st_transform(provincias, 22185)
+```
+
+## 7. Resultados
+
+Presentar mapas, gráficos, dashboards o aplicaciones Shiny.
+
+## 8. Discusión
+
+Interpretar los resultados y explicar limitaciones y posibles mejoras.
+
+# Lecciones aprendidas
+
+- `st_bbox()` opera sobre el conjunto de geometrías.
+- `scale_size()` modifica la representación visual de una estética.
+- Reproyectar antes de calcular buffers es fundamental.
+- A veces conviene convertir geometrías en columnas de coordenadas para interoperabilidad.
+
+# Objetivo
+
+Construir un portfolio que demuestre no solo dominio de herramientas, sino también capacidad para formular preguntas, justificar decisiones metodológicas y desarrollar análisis espaciales reproducibles.
