@@ -1,11 +1,15 @@
 ---
 title: "Estructura sugerida para un Portfolio de Ciencia de Datos Espacial"
 format: html
+editor: 
+  markdown: 
+    wrap: sentence
 ---
 
 # Filosofía del portfolio
 
-La idea no es construir un portfolio de herramientas, sino un **portfolio de investigaciones reproducibles**. El foco debe estar en responder preguntas mediante datos, utilizando R, SIG, Power BI y otras herramientas cuando sean necesarias.
+La idea no es construir un portfolio de herramientas, sino un **portfolio de investigaciones reproducibles**.
+El foco debe estar en responder preguntas mediante datos, utilizando R, SIG, Power BI y otras herramientas cuando sean necesarias.
 
 # Estructura sugerida para cada proyecto
 
@@ -23,15 +27,15 @@ Plantear una hipótesis inicial.
 
 ## 3. Datos
 
-| Fuente | Año | Formato | Observaciones |
-|---|---:|---|---|
-| INDEC | 2024 | CSV | Exportaciones provinciales |
-| IGN | 2025 | SHP | Límites provinciales |
-| OpenStreetMap | 2025 | OSM | Infraestructura logística |
+| Fuente        |  Año | Formato | Observaciones              |
+|---------------|-----:|---------|----------------------------|
+| INDEC         | 2024 | CSV     | Exportaciones provinciales |
+| IGN           | 2025 | SHP     | Límites provinciales       |
+| OpenStreetMap | 2025 | OSM     | Infraestructura logística  |
 
 ## 4. Metodología
 
-```text
+``` text
 Datos
 ↓
 Limpieza
@@ -58,7 +62,7 @@ Conclusiones
 
 Comentar únicamente decisiones metodológicas importantes.
 
-```r
+``` r
 # Se transforma a un CRS proyectado para trabajar en metros.
 provincias <- st_transform(provincias, 22185)
 ```
@@ -81,3 +85,115 @@ Interpretar los resultados y explicar limitaciones y posibles mejoras.
 # Objetivo
 
 Construir un portfolio que demuestre no solo dominio de herramientas, sino también capacidad para formular preguntas, justificar decisiones metodológicas y desarrollar análisis espaciales reproducibles.
+
+#Flujos de datos e investigación
+
+```{text}
+QGIS
+
+↓
+
+Exploro
+
+↓
+
+Encuentro el área que quiero
+
+↓
+
+Anoto las coordenadas
+
+↓
+
+R
+
+↓
+
+st_crop()
+
+↓
+
+Análisis reproducible
+```
+
+#Investigación
+
+```{text}
+📚 Pregunta de investigación
+
+        ↓
+
+🗺️ Exploración visual en QGIS
+
+        ↓
+
+💡 Formular hipótesis espaciales
+
+        ↓
+
+✍️ Anotar decisiones metodológicas
+(proyección, buffers, área de estudio)
+
+        ↓
+
+💻 Implementación reproducible en R
+
+        ↓
+
+📊 Visualización
+(ggplot2, Leaflet, Shiny, Power BI)
+
+        ↓
+
+📝 Discusión e interpretación
+
+```
+
+```{text}
+Problema espacial
+
+↓
+
+¿Cómo lo resolvería visualmente?
+
+↓
+
+¿Qué operación de SIG estoy haciendo?
+
+↓
+
+¿Qué función de sf hace esa operación?
+
+↓
+
+¿Qué devuelve?
+
+↓
+
+¿Por qué el autor la eligió?
+```
+
+# Diseño del análisis
+
+#### Pregunta
+
+¿Qué provincias argentinas tienen menor accesibilidad a puertos de aguas profundas?
+
+#### Exploración en QGIS
+
+Visualización de puertos.
+Verificación de la cobertura espacial.
+Delimitación del área de estudio.
+Selección del sistema de referencia.
+
+#### Implementación en R
+
+Descarga de datos.
+Limpieza.
+Reproyección.
+Cálculo de distancias.
+Visualización.
+
+#### Resultado
+
+Mapa + dashboard + conclusiones.

@@ -191,7 +191,7 @@ ymax
 
 Es decir:
 
->  ¿Cuál es el extremo más al oeste?
+> ¿Cuál es el extremo más al oeste?
 >
 > ¿Cuál es el extremo más al este?
 >
@@ -240,8 +240,60 @@ Bounding Box
 
 Hay funciones que trabajan:
 
--  **sobre cada geometría individual** (`st_area()`, `st_centroid()`, `st_buffer()`, etc.);
+- **sobre cada geometría individual** (`st_area()`, `st_centroid()`, `st_buffer()`, etc.);
 
--  **sobre el objeto espacial completo** (`st_bbox()`, por ejemplo).
+- **sobre el objeto espacial completo** (`st_bbox()`, por ejemplo).
 
 Esa diferencia va a aparecer una y otra vez en `sf`.
+
+## ¿Qué hace realmente `st_crop()`?
+
+Recorta:
+
+```{text}
+st_crop(
+    xmin = -78,
+    xmax = -65,
+    ymin = -56,
+    ymax = -17
+)
+
+```
+
+Eso significa que `st_crop()` está diciendo:
+
+> 
+>
+> **"Conservá únicamente la parte de la geometría que quede dentro de este rectángulo."**
+
+Es casi como hacer la operación inversa de `st_bbox()`.
+
+Posible flujo de datos
+
+```{text}
+QGIS
+
+↓
+
+Exploro
+
+↓
+
+Encuentro el área que quiero
+
+↓
+
+Anoto las coordenadas
+
+↓
+
+R
+
+↓
+
+st_crop()
+
+↓
+
+Análisis reproducible
+```
