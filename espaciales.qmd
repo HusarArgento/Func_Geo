@@ -452,4 +452,48 @@ ggplot() +
           fill = "#9069C0", color = "#DFC6EF", 
           linewidth = 0.2, alpha = 0.8)
 ```
+```{r}
+puntos <- tribble(~nombre, ~lon,     ~lat,
+                  "Hualqui", -8113368, -4434476,
+                  "Coronel", -8136065, -4440419,
+                  "Concepción", -8132714, -4414370,
+                  "Lota", -8139383, -4451456,
+                  "Penco", -8119934, -4402016,
+                  "Talcahuano", -8139277, -4399701) |> 
+  # convertir a tabla sf
+  st_as_sf(coords = c("lon", "lat"), 
+           crs = 3395)
+
+caja_puntos <- puntos|> 
+  st_buffer(50000) |> # agrandar puntos
+  st_bbox() # calcular caja que contiene a los puntos
+```
+
+```{r}
+chile_recorte <- chile |> 
+  # ajustar crs para que coincidan
+  st_transform(crs = st_crs(puntos)) |>
+  # recortar con la caja (bounding box)
+  st_crop(caja_puntos)
+```
+
+```{r}
+ggplot() +
+  geom_sf(data = chile_recorte,
+          fill = "#9069C0", color = "#E0C7F0", alpha = 0.5) +
+  geom_sf(data = puntos,
+          color = "#402E5A", size = 3, alpha = 0.7) +
+  geom_sf_text(data = puntos, 
+               aes(label = paste("  ", nombre)),
+               color = "#402E5A", size = 3, hjust = 0, angle = -35)
+```
+```{r}
+puntos_movidos <- puntos |> 
+  # modificar puntos condicionalmente
+  mutate(geometry = case_when(nombre == "Hualqui" ~ geometry + c(7000, 0),
+                              nombre ==  "Penco" ~ geometry + c(7000, 0),
+                              .default = st_sfc(geometry) |> st_set_crs(NA))
+  ) |> 
+  st_set_crs(st_crs(puntos))
+```
 
