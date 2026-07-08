@@ -41,7 +41,6 @@ library(sf)
 library(patchwork)
 ```
 
-
 ```{r}
 
 pais <- ne_states("Argentina")
@@ -120,7 +119,6 @@ mapa_buffer |>
           fill = "#9069C0", alpha = 0.5, linewidth = NA)
 ```
 
-
 ```{r}
 caja <- st_bbox(mapa)
 caja
@@ -167,7 +165,9 @@ ggplot() +
           color = "#402E5A",
           size = 3, alpha = .5)
 ```
+
 #Mas de una coordenada
+
 ```{r}
 coordenadas <- tribble(~nombre, ~lon, ~lat, ~n,
                        "A",  -69,  -38,  4,
@@ -232,6 +232,7 @@ ggplot() +
   coord_sf(xlim = c(-72, -56),
            ylim = c(-40, -30))
 ```
+
 ```{r}
 # tabla con coordenadas
 coordenadas <- tribble(~nombre, ~lon, ~lat, ~n,
@@ -297,6 +298,7 @@ ggplot() +
           fill = "#402E5A", color = "#402E5A",
           lwd = 0.7, alpha = 0.7)
 ```
+
 ```{r}
 coordenadas <- tribble(~tipo,    ~lon, ~lat,
                        "Triángulo", -68,  -30,
@@ -317,7 +319,6 @@ poligono <- puntos |>
   st_cast("POLYGON")
 
 ```
-
 
 ```{r}
 ggplot() +
@@ -388,6 +389,7 @@ regiones |>
           color = "#DFC6EF",
           linewidth = 0.2, alpha = 0.8)
 ```
+
 ```{r}
 # filtrar región principal
 region <- regiones |> 
@@ -402,11 +404,13 @@ region |>
           color = "#DFC6EF",
           linewidth = 0.2, alpha = 0.8)
 ```
+
 ```{r}
 # recortar ampa de fondo con caja de mapa principal
 fondo_region <- regiones |> 
   st_crop(st_bbox(region)) # recortar en base a caja
 ```
+
 ```{r}
 fondo_region |> 
   ggplot() +
@@ -414,6 +418,7 @@ fondo_region |>
           color = "#DFC6EF",
           linewidth = 0.2, alpha = 0.8)
 ```
+
 ```{r}
 ggplot() +
   # capa de fondo
@@ -425,6 +430,7 @@ ggplot() +
           fill = "#9069C0", color = "#DFC6EF", 
           linewidth = 0.2, alpha = 0.6)
 ```
+
 ```{r}
  #con buffer sobre el mapa para ampliar recorte
 fondo_region <- regiones |> 
@@ -440,6 +446,7 @@ fondo_region |>
           color = "#DFC6EF",
           linewidth = 0.2, alpha = 0.8)
 ```
+
 ```{r}
 # combinar fondo con mapa principal
 ggplot() +
@@ -452,6 +459,7 @@ ggplot() +
           fill = "#9069C0", color = "#DFC6EF", 
           linewidth = 0.2, alpha = 0.8)
 ```
+
 ```{r}
 puntos <- tribble(~nombre, ~lon,     ~lat,
                   "Hualqui", -8113368, -4434476,
@@ -487,6 +495,7 @@ ggplot() +
                aes(label = paste("  ", nombre)),
                color = "#402E5A", size = 3, hjust = 0, angle = -35)
 ```
+
 ```{r}
 puntos_movidos <- puntos |> 
   # modificar puntos condicionalmente
@@ -496,4 +505,3 @@ puntos_movidos <- puntos |>
   ) |> 
   st_set_crs(st_crs(puntos))
 ```
-
