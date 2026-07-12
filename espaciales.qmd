@@ -31,6 +31,7 @@ install.packages("sf")
 install.packages("rnaturalearth")
 install.packages("pak")
 install.packages("tidyverse")
+install.packages("patchwork")
 
 ```
 
@@ -39,7 +40,7 @@ install.packages("tidyverse")
 library(rnaturalearth)
 library(tidyverse)
 library(sf)
-
+library(patchwork)
 ```
 
 
@@ -121,7 +122,6 @@ mapa_buffer |>
           fill = "#9069C0", alpha = 0.5, linewidth = NA)
 ```
 
-
 ```{r}
 caja <- st_bbox(mapa)
 caja
@@ -168,7 +168,9 @@ ggplot() +
           color = "#402E5A",
           size = 3, alpha = .5)
 ```
+
 #Mas de una coordenada
+
 ```{r}
 coordenadas <- tribble(~nombre, ~lon, ~lat, ~n,
                        "A",  -69,  -38,  4,
@@ -233,6 +235,7 @@ ggplot() +
   coord_sf(xlim = c(-72, -56),
            ylim = c(-40, -30))
 ```
+
 ```{r}
 # tabla con coordenadas
 coordenadas <- tribble(~nombre, ~lon, ~lat, ~n,
@@ -284,3 +287,224 @@ poligono <- puntos |>
   st_cast("POLYGON")
 ```
 
+```{r}
+ggplot() +
+  # mapa de fondo
+  geom_sf(data = mapa,
+          fill = "#9069C0", color = "#E0C7F0",
+          linewidth = 0.2, alpha = 0.7) +
+  # capa con puntos
+  geom_sf(data = puntos,
+          alpha = .6) +
+  # capa con polígono
+  geom_sf(data = poligono,
+          fill = "#402E5A", color = "#402E5A",
+          lwd = 0.7, alpha = 0.7)
+```
+
+```{r}
+coordenadas <- tribble(~tipo,    ~lon, ~lat,
+                       "Triángulo", -68,  -30,
+                       "Triángulo", -64,  -25,
+                       "Triángulo", -60,  -30,
+                       "Cuadrado", -68,  -38,
+                       "Cuadrado", -60,  -38,
+                       "Cuadrado", -60,  -32,
+                       "Cuadrado", -68,  -32)
+
+puntos <- coordenadas |> 
+  st_as_sf(coords = c("lon", "lat"), 
+           crs = st_crs(mapa))
+
+poligono <- puntos |> 
+  group_by(tipo) |> 
+  summarise(geometry = st_combine(geometry)) |> 
+  st_cast("POLYGON")
+
+```
+
+```{r}
+ggplot() +
+  # mapa de fondo
+  geom_sf(data = mapa,
+          fill = "#9069C0", color = "#E0C7F0",
+          linewidth = 0.2, alpha = 0.7) +
+  # capa con polígonos de color
+  geom_sf(data = poligono,
+          aes(fill = tipo, color = tipo),
+          lwd = 0.6, alpha = .5) +
+  # capa con puntos
+  geom_sf(data = puntos,
+          color = "#25054A",
+          alpha = .5) +
+  # escala de colores
+  labs(fill = "Tipo", color = "Tipo") +
+  theme(legend.key.spacing.y = unit(1, "mm"))
+```
+
+```{r}
+
+chile <- ne_countries(country = "Chile", scale = 10) |> 
+  select(pais = admin,
+         region = name_es,
+         geometry)
+
+chile_recortado <- chile |> 
+  st_crop(xmin = -78, ymax = -17,
+          xmax = -65, ymin = -56) 
+
+```
+
+```{r}
+mapa_completo <- chile |> 
+  ggplot() +
+  geom_sf(fill = "#9069C0", linewidth = 0)
+
+mapa_recortado <- chile_recortado |> 
+  ggplot() +
+  geom_sf(fill = "#9069C0", linewidth = 0)
+
+# poner los dos mapas lado a lado
+library(patchwork)
+
+mapa_completo + mapa_recortado
+```
+
+```{r}
+library(rnaturalearth)
+
+# obtener mapa por regiones
+chile <- ne_states(country = "Chile") |> 
+  select(pais = admin,
+         region = name_es,
+         geometry)
+
+# filtrar algunas regiones
+regiones <- chile |> 
+  filter(region %in% c("O'Higgins", "Maule", "Ñuble", "Biobío", "La Araucanía", "Los Ríos"))
+```
+
+```{r}
+# visualizar regiones
+regiones |> 
+  ggplot() +
+  geom_sf(fill = "#9069C0", 
+          color = "#DFC6EF",
+          linewidth = 0.2, alpha = 0.8)
+```
+
+```{r}
+# filtrar región principal
+region <- regiones |> 
+  filter(region == "Ñuble")
+```
+
+```{r}
+# visualizar regiones
+region |> 
+  ggplot() +
+  geom_sf(fill = "#9069C0", 
+          color = "#DFC6EF",
+          linewidth = 0.2, alpha = 0.8)
+```
+
+```{r}
+# recortar ampa de fondo con caja de mapa principal
+fondo_region <- regiones |> 
+  st_crop(st_bbox(region)) # recortar en base a caja
+```
+
+```{r}
+fondo_region |> 
+  ggplot() +
+  geom_sf(fill = "#9069C0", 
+          color = "#DFC6EF",
+          linewidth = 0.2, alpha = 0.8)
+```
+
+```{r}
+ggplot() +
+  # capa de fondo
+  geom_sf(data = fondo_region, 
+          fill = "#9069C0", color = "#DFC6EF", 
+          alpha = 0.4) +
+  # capa principal
+  geom_sf(data = region, 
+          fill = "#9069C0", color = "#DFC6EF", 
+          linewidth = 0.2, alpha = 0.6)
+```
+
+```{r}
+ #con buffer sobre el mapa para ampliar recorte
+fondo_region <- regiones |> 
+  st_crop(region |> 
+            st_buffer(60000) |> # ampliar mapa 
+            st_bbox()) # calcular caja
+```
+
+```{r}
+fondo_region |> 
+  ggplot() +
+  geom_sf(fill = "#9069C0", 
+          color = "#DFC6EF",
+          linewidth = 0.2, alpha = 0.8)
+```
+
+```{r}
+# combinar fondo con mapa principal
+ggplot() +
+  # capa de fondo
+  geom_sf(data = fondo_region, 
+          fill = "#9069C0", color = "#DFC6EF", 
+          alpha = 0.4) +
+  # capa principal
+  geom_sf(data = region, 
+          fill = "#9069C0", color = "#DFC6EF", 
+          linewidth = 0.2, alpha = 0.8)
+```
+
+```{r}
+puntos <- tribble(~nombre, ~lon,     ~lat,
+                  "Hualqui", -8113368, -4434476,
+                  "Coronel", -8136065, -4440419,
+                  "Concepción", -8132714, -4414370,
+                  "Lota", -8139383, -4451456,
+                  "Penco", -8119934, -4402016,
+                  "Talcahuano", -8139277, -4399701) |> 
+  # convertir a tabla sf
+  st_as_sf(coords = c("lon", "lat"), 
+           crs = 3395)
+
+caja_puntos <- puntos|> 
+  st_buffer(50000) |> # agrandar puntos
+  st_bbox() # calcular caja que contiene a los puntos
+```
+
+```{r}
+chile_recorte <- chile |> 
+  # ajustar crs para que coincidan
+  st_transform(crs = st_crs(puntos)) |>
+  # recortar con la caja (bounding box)
+  st_crop(caja_puntos)
+```
+
+```{r}
+ggplot() +
+  geom_sf(data = chile_recorte,
+          fill = "#9069C0", color = "#E0C7F0", alpha = 0.5) +
+  geom_sf(data = puntos,
+          color = "#402E5A", size = 3, alpha = 0.7) +
+  geom_sf_text(data = puntos, 
+               aes(label = paste("  ", nombre)),
+               color = "#402E5A", size = 3, hjust = 0, angle = -35)
+```
+
+```{r}
+puntos_movidos <- puntos |> 
+  # modificar puntos condicionalmente
+  mutate(geometry = case_when(nombre == "Hualqui" ~ geometry + c(7000, 0),
+                              nombre ==  "Penco" ~ geometry + c(7000, 0),
+                              .default = st_sfc(geometry) |> st_set_crs(NA))
+  ) |> 
+  st_set_crs(st_crs(puntos))
+```
