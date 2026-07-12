@@ -31,12 +31,17 @@ install.packages("sf")
 install.packages("rnaturalearth")
 install.packages("pak")
 install.packages("tidyverse")
+
+```
+
+```{r}
+
 library(rnaturalearth)
 library(tidyverse)
 library(sf)
 
-
 ```
+
 
 ```{r}
 
