@@ -1,0 +1,171 @@
+---
+title: "CRS"
+author: "Lucas Melfi"
+format: html
+editor: visual
+---
+
+## Quarto
+
+Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.
+
+## Running Code
+
+When you click the **Render** button a document will be generated that includes both content and the output of embedded code. You can embed code like this:
+
+```{r}
+1 + 1
+```
+
+You can add options to executable code like this
+
+```{r}
+#| echo: false
+2 * 2
+```
+
+The `echo: false` option disables the printing of code (only output is displayed).
+
+La pregunta correcta no es: "¿Qué hizo?" sino: **"¿Cómo podemos averiguarlo?"**
+
+> No especular.
+
+**Diseñar un experimento.**
+
+```{r}
+class(caja)
+
+```
+
+```{r}
+st_area(caja)
+```
+
+```{r}
+st_crs(caja)
+```
+
+Hacemos:
+
+Hipótesis → Experimento → Evidencia → Conclusión.
+
+Eso es ciencia de datos.
+
+Cuando el objeto está en un CRS geográfico como EPSG:4326, el paquete no calcula el área en grados cuadrados.
+
+Eso sería bastante poco útil.
+
+En cambio, utiliza cálculos geodésicos sobre el elipsoide de la Tierra (a través de la biblioteca S2, en las versiones modernas de sf).
+
+Es decir:
+
+las coordenadas siguen estando en grados; pero el área se devuelve en unidades físicas, normalmente metros cuadrados.
+
+Fijate qué inteligente es el paquete: Sabe que un usuario quiere conocer una superficie real, no una superficie expresada en "grados²", que casi nunca tiene interpretación práctica.
+
+Ahora detectaste una aparente contradicción entre:
+
+el CRS y la unidad del resultado.
+
+Ese tipo de observación es exactamente la que hace alguien que empieza a dominar una herramienta.
+
+Area = largo x ancho = m2 Radio = distancia perpendicular alrededor de una geometría
+
+```{r}
+p <- st_sfc(st_point(c(-58, -34)), crs = 4326)
+```
+
+```{r}
+b1 <- st_buffer(p, 1)
+b2 <- st_buffer(p, 50000)
+```
+
+```{r}
+ggplot() +
+  
+  geom_sf(data = p,
+          fill = "#9069C0", color = "#EBD2FB",
+          linewidth = 0.1) + 
+  geom_sf(data = b1,
+          fill= NA,
+          color = "red",
+          size = 3) + 
+  geom_sf(data = b2,
+        fill= NA, 
+        color = "blue",
+        size = 3)
+```
+
+La evidencia es que el buffer azul tapa completamente al rojo.
+
+Ahora viene lo interesante.
+
+**¿Qué acabamos de demostrar?**
+
+Cuando planteé el experimento, había dos hipótesis posibles:
+
+**Hipótesis A**
+
+st_buffer() interpreta 50000 como 50.000 metros.
+
+Si eso fuera cierto...
+
+el buffer sería un círculo de aproximadamente 50 km alrededor del punto; sería relativamente pequeño.
+
+**Hipótesis B**
+
+st_buffer() interpreta 50000 usando las unidades del CRS.
+
+Como el CRS está en grados...
+
+50000 significa una barbaridad.
+
+¿Y qué observaste?
+
+El buffer es enorme.
+
+Entonces, con la evidencia que vos mismo generaste, la hipótesis A queda muy debilitada.
+
+¿Qué aprendimos?
+
+Yo escribiría en tu cuaderno algo así:
+
+Regla provisional:
+
+st_buffer() utiliza las unidades del CRS de la geometría.
+
+Si el CRS es geográfico (grados), un dist expresado como 50000 produce un resultado absurdo.
+
+Antes de hacer buffers métricos conviene transformar a un CRS proyectado.
+
+Fijate que digo regla provisional.
+
+En ciencia nunca hablamos de verdades absolutas cuando estamos aprendiendo una herramienta.
+
+Hablamos de lo que la evidencia muestra.
+
+**"Antes de llamar a `st_buffer()`, debería transformar la capa a un CRS proyectado cuyas unidades sean metros, para que el argumento `dist` tenga un significado físico."**
+
+La diferencia parece mínima, pero es importante.
+
+No lo hacemos "porque las matemáticas funcionan mejor".
+
+Lo hacemos porque **50.000 debe significar 50.000 metros**.
+
+```{text}
+¿En qué CRS estoy?
+
+↓
+
+¿Las unidades son grados o metros?
+
+↓
+
+Si son grados → transformar
+
+↓
+
+Ahora sí → st_buffer(50000)
+
+
+```

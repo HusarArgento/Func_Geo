@@ -17,43 +17,28 @@ When you click the **Render** button a document will be generated that includes 
 1 + 1
 ```
 
+## PRE-PORTFOLIO · Ejercicio 1 Tema
 
-PRE-PORTFOLIO · Ejercicio 1
-Tema
+### Construcción automática del área de estudio.
 
-Construcción automática del área de estudio.
+**Consigna**
 
-Este ejercicio resume muchas de las ideas que trabajamos.
+Disponés de un conjunto de ciudades (puntos) de Argentina y debés construir automáticamente un mapa contextual.
 
-Consigna
+El mapa deberá: mostrar únicamente el área cercana a esas ciudades; tener un margen visual adecuado; conservar el contexto territorial; ser completamente reproducible. No se puede recortar "a ojo". Debe surgir del algoritmo.
 
-Disponés de un conjunto de ciudades (puntos) de Argentina.
+**Datos**
 
-Debés construir automáticamente un mapa contextual.
+Podés usar rnaturalearth. Elegí entre 5 y 10 ciudades. Las coordenadas podés inventarlas o buscarlas.
 
-El mapa deberá: mostrar únicamente el área cercana a esas ciudades; tener un margen visual adecuado; conservar el contexto territorial; ser completamente reproducible.
-
-No se puede recortar "a ojo".
-
-Debe surgir del algoritmo.
-
-Datos
-
-Podés usar rnaturalearth.
-
-Elegí entre 5 y 10 ciudades.
-
-Las coordenadas podés inventarlas o buscarlas.
-
-Restricciones
-
-No voy a decirte qué funciones usar. Vos tenés que decidir
+**Restricciones**
 
 Lo que espero recibir:
 
 No solamente el script, quiero además un pequeño informe. No hace falta que sea largo.
 
 Algo así:
+
 ```{text}
 
 1. Objetivo
@@ -90,7 +75,6 @@ Todo el script.
 
 ```
 
-
 ```{r}
 library(rnaturalearth)
 library(tidyverse)
@@ -111,7 +95,6 @@ library(patchwork)
 
 # 6. Graficar el resultado
 ```
-
 
 ```{r}
 
@@ -162,3 +145,191 @@ ggplot() +
 
 ```
 
+Ahora quiero que empieces a **diseñar un flujo de trabajo**, como haría un analista espacial.
+
+## Ejercicio 2 – El mapa de influencia de ciudades
+
+**Objetivo**
+
+Construir un mapa que muestre únicamente la región de Argentina donde se encuentran cinco ciudades elegidas, dejando un margen visual adecuado.
+
+No quiero el código todavía. Quiero que lo diseñes.
+
+### Datos
+
+Podés usar las mismas ciudades del ejercicio anterior:
+
+```{text}
+
+CABA
+
+Córdoba
+
+Mendoza
+
+Bariloche
+
+Ushuaia
+
+y el mapa provincial de Natural Earth.
+
+
+```
+
+## Condiciones
+
+El resultado debe mostrar:
+
+- las provincias recortadas;
+
+- los puntos de las ciudades;
+
+- un margen de contexto alrededor;
+
+- ningún elemento del resto del país.
+
+## Restricciones
+
+Esta vez te prohíbo usar `st_crop()` hasta el paso final.
+
+Eso significa que antes tenés que construir todo lo necesario.
+
+## Tu tarea
+
+Quiero que me escribas únicamente el **algoritmo**, no el código.
+
+Algo del estilo:
+
+1.  Cargar...
+
+2.  ...
+
+3.  ...
+
+4.  ...
+
+Pero justificando **por qué** hacés cada paso.
+
+No alcanza con decir:
+
+> "hacer buffer"
+
+Quiero leer algo como:
+
+> "Hago buffers porque necesito..."
+
+## Pistas (muy pequeñas)
+
+Preguntate en cada paso:
+
+- ¿Qué objeto tengo ahora?
+
+- ¿Qué objeto necesito obtener?
+
+- ¿Qué función transforma uno en el otro?
+
+## Un desafío extra
+
+En el ejercicio anterior trabajamos con un solo conjunto de puntos.
+
+Ahora imaginá que mañana el cliente te dice:
+
+> "No son cinco ciudades. Son 800."
+
+**¿Seguiría funcionando exactamente el mismo algoritmo?**
+
+Si la respuesta es sí, vas por muy buen camino.
+
+```{r}
+# 1. Cargar el mapa de Argentina
+pais <- ne_states("Argentina")
+
+arg_mapa <- pais |> 
+  # seleccionar columnas
+  select(pais = admin,
+         region = name_es,
+         geometry)
+
+
+# 2. Crear la capa de puntos
+
+ciudades <- tribble(~nombre, ~lon, ~lat,
+                    "CABA",  -58.3816,  -34.6037,
+                    "Ushuaia",  -68.3000,  -54.8000,
+                    "Mendoza",  -68.8444,  -32.8897,
+                    "Bariloche", -71.3000, -41.1500, 
+                    "Cordoba",  -64.1833, -31.4167)
+
+puntos_cities <- ciudades |>
+  st_as_sf(coords = c("lon", "lat"), 
+           crs = st_crs(arg_mapa))
+
+# 3. Generar un margen alrededor de los puntos
+caja2 <- puntos_cities |> 
+  st_bbox() |> 
+  st_as_sfc(crs = st_crs(arg_mapa))
+
+# 4. Recortar el mapa
+recorte2 <- st_crop(arg_mapa, caja2)
+
+# 5. Graficar el resultado
+ggplot() + 
+  geom_sf(data = recorte2,
+          fill = "#9069C0", color = "#EBD2FB",
+          linewidth = 0.1) +
+  geom_sf(data = puntos_cities,
+          color = "red",
+          size = 3, alpha = .5) +
+  geom_sf_text(data = puntos_cities, 
+               aes(label = paste("  ", nombre)),
+               color = "black", size = 3, hjust = 0, angle = -35)
+
+```
+
+## Ejercicio 3 — Diseñá vos la estrategia
+
+Imaginá que una provincia te contrata. Te dice:
+
+>  "Queremos construir hospitales."
+
+Y te entrega únicamente:
+
+-  el mapa provincial;
+
+-  la ubicación de 120 localidades.
+
+### Tu objetivo
+
+Producir un mapa donde puedan verse claramente las localidades y su distribución espacial.
+
+No podés mover los puntos manualmente.
+
+No podés cambiar las coordenadas originales.
+
+No podés eliminar localidades.
+
+## La pregunta
+
+**¿Qué estrategias cartográficas o geométricas se te ocurren para mejorar la legibilidad?**
+
+No estoy pensando solamente en funciones de R.
+
+Estoy pensando como cartógrafo.
+
+Podés proponer:
+
+-  geometrías nuevas;
+
+-  desplazamientos;
+
+-  etiquetas;
+
+-  símbolos;
+
+-  cualquier idea.
+
+Porque por primera vez **no existe una función protagonista**.
+
+Lo protagonista es el razonamiento cartográfico.
+
+Y ese es el tipo de problema que aparece en proyectos reales: nadie te dice "usá `st_buffer()`". Te dicen "el mapa no se entiende". A partir de ahí, el desafío consiste en decidir qué herramientas espaciales y cartográficas son las adecuadas para resolver ese problema. Ahí es donde un analista empieza a diferenciarse de alguien que simplemente conoce funciones de `sf`.

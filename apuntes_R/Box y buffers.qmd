@@ -1,0 +1,139 @@
+---
+title: "Buffers y Box"
+format: html
+editor: visual
+---
+
+## Quarto
+
+Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.
+
+## Running Code
+
+When you click the **Render** button a document will be generated that includes both content and the output of embedded code. You can embed code like this:
+
+```{r}
+1 + 1
+```
+
+You can add options to executable code like this
+
+```{r}
+#| echo: false
+2 * 2
+```
+
+The `echo: false` option disables the printing of code (only output is displayed).
+
+¡Muy bien! Estás muy cerca. Solo hay un detalle de signo.
+
+Si hacés:
+
+```{r}
+xmin + 40 
+```
+
+¿Hacia dónde se mueve el borde izquierdo?
+
+Imaginá una recta numérica:
+
+```{text}
+-75      -70      -65      -60  |---------|---------|---------| 
+```
+
+Si el borde izquierdo está en:
+
+```         
+xmin = -75 
+```
+
+y hacés:
+
+```         
+xmin + 5 
+```
+
+obtenés:
+
+```         
+-70 
+```
+
+¿Qué pasó?
+
+El borde izquierdo se movió **hacia la derecha**.
+
+¿El mapa se agrandó o se achicó?
+
+👉 **Se achicó.**
+
+Ahora pensá el caso contrario.
+
+Si hacés:
+
+```         
+xmin - 5 
+```
+
+pasás de:
+
+```         
+-75 
+```
+
+a
+
+```         
+-80 
+```
+
+Ahora el borde izquierdo se movió hacia la izquierda. El mapa se hizo más ancho.
+
+Entonces, para **agregar margen**, la lógica sería:
+
+- `xmin` → disminuirlo (más negativo si estás en el hemisferio occidental).
+
+- `xmax` → aumentarlo.
+
+- `ymin` → disminuirlo.
+
+- `ymax` → aumentarlo.
+
+Conceptualmente:
+
+```         
+xmin = xmin - margen 
+xmax = xmax + margen  
+ymin = ymin - margen 
+ymax = ymax + margen 
+```
+
+## Lo interesante de este método
+
+Acabás de descubrir **otra estrategia** completamente distinta al buffer.
+
+### Estrategia 1
+
+```         
+Puntos    ↓ Buffer    ↓ BBox 
+```
+
+El margen surge **geométricamente**.
+
+### Estrategia 2
+
+```         
+Puntos    ↓ BBox    ↓ Modificar xmin, xmax, ymin, ymax 
+```
+
+El margen surge **numéricamente**.
+
+Las dos son válidas.
+
+## ¿Cuál usaría yo?
+
+Depende del problema.
+
+- Si quiero un margen fijo de **20 km**, prefiero trabajar con buffers (en un CRS proyectado), porque el margen tiene un significado físico.
+
+- Si estoy preparando un mapa para un informe y solo quiero "un poco más de aire" alrededor del contenido, muchas veces modificar el `bbox` es más simple y me da un control muy fino sobre el encuadre.

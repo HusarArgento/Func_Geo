@@ -43,7 +43,6 @@ library(sf)
 library(patchwork)
 ```
 
-
 ```{r}
 
 pais <- ne_states("Argentina")

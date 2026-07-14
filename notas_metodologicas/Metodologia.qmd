@@ -1,0 +1,61 @@
+---
+title: "Metodo per se"
+author: "Lucas Melfi"
+format: html
+editor: visual
+---
+
+## Quarto
+
+Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.
+
+## Running Code
+
+When you click the **Render** button a document will be generated that includes both content and the output of embedded code. You can embed code like this:
+
+```{r}
+1 + 1
+```
+
+You can add options to executable code like this
+
+```{r}
+#| echo: false
+2 * 2
+```
+
+The `echo: false` option disables the printing of code (only output is displayed).
+
+Ahora quiero introducirte un concepto que usan mucho en ingeniería de software y ciencia de datos: **YAGNI** (*You Aren't Gonna Need It*), que en español sería algo como:
+
+> **"No implementes hoy algo que todavía no necesitás."**
+
+No significa que esté mal pensar a futuro.
+
+Significa que el algoritmo debe responder primero al problema actual.
+
+Antes de escribir la primera línea de código, preguntate:
+
+>  **¿Qué exige este problema y cuál es el objeto más simple que me permite resolverlo?**
+
+- **Leer el problema.**
+
+<!-- -->
+
+-  **Diseñar el algoritmo en español.**
+
+<!-- -->
+
+-  **Justificar cada paso.**
+
+<!-- -->
+
+-  **Recién ahí escribir R.**
+
+<!-- -->
+
+-  **Ejecutar y analizar el resultado.**
+
+<!-- -->
+
+-  **Reflexionar sobre qué aprendimos**
