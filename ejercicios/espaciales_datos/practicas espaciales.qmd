@@ -1,0 +1,164 @@
+---
+title: "Pre Portfolio"
+author: "Lucas S Melfi"
+format: html
+editor: visual
+---
+
+## Quarto
+
+Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.
+
+## Running Code
+
+When you click the **Render** button a document will be generated that includes both content and the output of embedded code. You can embed code like this:
+
+```{r}
+1 + 1
+```
+
+
+PRE-PORTFOLIO · Ejercicio 1
+Tema
+
+Construcción automática del área de estudio.
+
+Este ejercicio resume muchas de las ideas que trabajamos.
+
+Consigna
+
+Disponés de un conjunto de ciudades (puntos) de Argentina.
+
+Debés construir automáticamente un mapa contextual.
+
+El mapa deberá: mostrar únicamente el área cercana a esas ciudades; tener un margen visual adecuado; conservar el contexto territorial; ser completamente reproducible.
+
+No se puede recortar "a ojo".
+
+Debe surgir del algoritmo.
+
+Datos
+
+Podés usar rnaturalearth.
+
+Elegí entre 5 y 10 ciudades.
+
+Las coordenadas podés inventarlas o buscarlas.
+
+Restricciones
+
+No voy a decirte qué funciones usar. Vos tenés que decidir
+
+Lo que espero recibir:
+
+No solamente el script, quiero además un pequeño informe. No hace falta que sea largo.
+
+Algo así:
+```{text}
+
+1. Objetivo
+
+¿Qué querías lograr?
+
+2. Estrategia
+
+Explicame el algoritmo.
+
+No el código.
+
+El algoritmo.
+
+3. Justificación metodológica
+
+Por ejemplo:
+
+¿Por qué ese buffer?
+
+¿Por qué ese CRS?
+
+¿Por qué ese orden de operaciones?
+
+4. Código
+
+Todo el script.
+
+5. Reflexión
+
+¿Qué fue lo más difícil?
+
+¿Qué aprendiste?
+
+```
+
+
+```{r}
+library(rnaturalearth)
+library(tidyverse)
+library(sf)
+library(patchwork)
+```
+
+```{r}
+# 1. Cargar el mapa de Argentina
+
+# 2. Crear la capa de puntos
+
+# 3. Generar un margen alrededor de los puntos
+
+# 4. Calcular la extensión del mapa
+
+# 5. Recortar el mapa
+
+# 6. Graficar el resultado
+```
+
+
+```{r}
+
+# 1. Cargar el mapa de Argentina
+pais <- ne_states("Argentina")
+
+arg_mapa <- pais |> 
+  # seleccionar columnas
+  select(pais = admin,
+         region = name_es,
+         geometry)
+
+
+# 2. Crear la capa de puntos
+
+ciudades <- tribble(~nombre, ~lon, ~lat,
+                       "CABA",  -58.3816,  -34.6037,
+                       "Ushuaia",  -68.3000,  -54.8000,
+                       "Mendoza",  -68.8444,  -32.8897,
+                       "Bariloche", -71.3000, -41.1500, 
+                       "Cordoba",  -64.1833, -31.4167)
+
+puntos_cities <- ciudades |>
+  st_as_sf(coords = c("lon", "lat"), 
+           crs = st_crs(arg_mapa))
+
+# 3. Generar un margen alrededor de los puntos
+caja <- puntos_cities |> 
+  st_buffer(dist = 50000) |> 
+  st_bbox() |> 
+  st_as_sfc(crs = st_crs(mapa))
+
+# 4. Calcular la extensión del mapa
+
+# 5. Recortar el mapa
+recorte <- st_crop(arg_mapa, caja)
+
+# 6. Graficar el resultado
+ggplot() +
+  # recorte
+  geom_sf(data = recorte,
+          fill = "#9069C0", color = "#EBD2FB",
+          linewidth = 0.1) +
+  # capa con el punto
+  geom_sf(data = puntos_cities,
+          color = "#402E5A",
+          size = 3, alpha = .5)
+
+```
+
