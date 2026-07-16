@@ -36,26 +36,26 @@ Significa que el algoritmo debe responder primero al problema actual.
 
 Antes de escribir la primera línea de código, preguntate:
 
->  **¿Qué exige este problema y cuál es el objeto más simple que me permite resolverlo?**
+> **¿Qué exige este problema y cuál es el objeto más simple que me permite resolverlo?**
 
 - **Leer el problema.**
 
 <!-- -->
 
--  **Diseñar el algoritmo en español.**
+- **Diseñar el algoritmo en español.**
 
 <!-- -->
 
--  **Justificar cada paso.**
+- **Justificar cada paso.**
 
 <!-- -->
 
--  **Recién ahí escribir R.**
+- **Recién ahí escribir R.**
 
 <!-- -->
 
--  **Ejecutar y analizar el resultado.**
+- **Ejecutar y analizar el resultado.**
 
 <!-- -->
 
--  **Reflexionar sobre qué aprendimos**
+- **Reflexionar sobre qué aprendimos**

@@ -80,6 +80,7 @@ library(rnaturalearth)
 library(tidyverse)
 library(sf)
 library(patchwork)
+library(here)
 ```
 
 ```{r}
@@ -290,13 +291,13 @@ ggplot() +
 
 Imaginá que una provincia te contrata. Te dice:
 
->  "Queremos construir hospitales."
+> "Queremos construir hospitales."
 
 Y te entrega únicamente:
 
--  el mapa provincial;
+- el mapa provincial;
 
--  la ubicación de 120 localidades.
+- la ubicación de 120 localidades.
 
 ### Tu objetivo
 
@@ -318,18 +319,62 @@ Estoy pensando como cartógrafo.
 
 Podés proponer:
 
--  geometrías nuevas;
+- geometrías nuevas;
 
--  desplazamientos;
+- desplazamientos;
 
--  etiquetas;
+- etiquetas;
 
--  símbolos;
+- símbolos;
 
--  cualquier idea.
+- cualquier idea.
 
 Porque por primera vez **no existe una función protagonista**.
 
 Lo protagonista es el razonamiento cartográfico.
 
 Y ese es el tipo de problema que aparece en proyectos reales: nadie te dice "usá `st_buffer()`". Te dicen "el mapa no se entiende". A partir de ahí, el desafío consiste en decidir qué herramientas espaciales y cartográficas son las adecuadas para resolver ese problema. Ahí es donde un analista empieza a diferenciarse de alguien que simplemente conoce funciones de `sf`.
+
+```{r}
+pais <- ne_states("Argentina")
+
+mapa <- pais |> 
+  # seleccionar columnas
+  select(pais = admin,
+         region = name_es,
+         geometry)
+mapa
+
+
+```
+```{r}
+ggplot() +
+  # recorte
+  geom_sf(data = mapa,
+          fill = "#9069C0", color = "#EBD2FB",
+          linewidth = 0.1) 
+```
+
+```{r}
+partidos <- st_read(dsn = here::here("data", "gpt-ejercicios", "gobiernoslocales_2022.geojson"))
+```
+
+
+
+
+```{r}
+set.seed(123) 
+
+muestra_loc <- partidos |> slice_sample(n = 120)
+```
+
+```{r}
+ggplot() +
+  # recorte
+  geom_sf(data = mapa,
+          fill = "#9069C0", color = "#EBD2FB",
+          linewidth = 0.1) +
+  geom_sf(data = muestra_loc,
+          fill="black",  size = 1 )
+```
+
