@@ -347,6 +347,8 @@ mapa
 
 
 ```
+
+
 ```{r}
 ggplot() +
   # recorte
@@ -358,9 +360,6 @@ ggplot() +
 ```{r}
 partidos <- st_read(dsn = here::here("data", "gpt-ejercicios", "gobiernoslocales_2022.geojson"))
 ```
-
-
-
 
 ```{r}
 set.seed(123) 
@@ -376,5 +375,175 @@ ggplot() +
           linewidth = 0.1) +
   geom_sf(data = muestra_loc,
           fill="black",  size = 1 )
+```
+
+Creo que ahora es el momento de subir un escalón. Hasta ahora estuvimos aprendiendo **herramientas** (`st_crop`, `st_buffer`, `st_bbox`, `slice_sample`, `st_transform`). A partir de este punto quiero que empieces a entrenar **criterio**.
+
+Y te voy a cambiar un poco la dinámica.
+
+Hasta ahora yo te decía casi exactamente qué hacer.
+
+A partir de ahora voy a hacer de **cliente**, no de profesor.
+
+Vos vas a tener que decidir el flujo de trabajo.
+
+---
+
+# Ejercicio 4 - Cliente real
+
+> **Ministerio de Salud de la Nación**
+>
+> "Tenemos un listado de 120 localidades distribuidas en Argentina. El mapa nacional es útil para mostrar la distribución general, pero la región central concentra demasiadas localidades y resulta difícil analizarlas.
+>
+> Necesitamos una solución cartográfica para que un funcionario pueda entender esa concentración sin perder el contexto nacional."
+
+Eso es todo.
+
+No hay ninguna pista técnica.
+
+---
+
+## Tus objetivos
+
+No quiero un único mapa.
+
+Quiero que pienses una solución cartográfica.
+
+Puede incluir:
+
+* un mapa principal;
+* un mapa secundario;
+* un detalle;
+* un recorte;
+* otra idea.
+
+Pero la decisión tiene que ser tuya.
+
+---
+
+## Reglas
+
+No podés preguntarte:
+
+> "¿Qué función de `sf` uso?"
+
+Primero preguntate:
+
+> **"¿Qué necesita ver el funcionario?"**
+
+Después recién aparecen las funciones.
+
+---
+
+## ¿Qué espero de vos?
+
+No código.
+
+Quiero un pequeño diseño del proyecto.
+
+Algo como esto:
+
+1. ¿Qué mapas harías?
+2. ¿Qué comunicaría cada uno?
+3. ¿Por qué elegís esa solución y no otra?
+
+---
+
+### ¿Por qué este ejercicio?
+
+Porque esto es exactamente lo que pasa en un trabajo real.
+
+Nadie te dice:
+
+> "Usá `st_crop()`."
+
+Te dicen:
+
+> "Tengo este problema."
+
+Y vos decidís si la solución es:
+
+* un recorte;
+* un inset;
+* dos mapas;
+* cambiar la simbología;
+* otra escala;
+* o incluso concluir que no hace falta cambiar nada.
+
+---
+
+## Mi objetivo con vos
+
+Hace unos meses estabas aprendiendo `sf`.
+
+Hoy ya sabés usar bastantes herramientas.
+
+Mi objetivo ahora es que, cuando dentro de un año alguien te diga:
+
+> "Necesito un mapa para comunicar este fenómeno."
+
+Tu primera reacción no sea abrir RStudio.
+
+Sea agarrar una hoja y un lápiz.
+
+Hacer un esquema.
+
+Pensar qué querés comunicar.
+
+Y recién después escribir el primer `ggplot()`.
+
+Esa, para mí, es la diferencia entre alguien que programa mapas y alguien que los diseña. Y, sinceramente, creo que ya estás bastante cerca de empezar esa transición.
+
+```{r}
+partidos <- st_read(dsn = here::here("data", "gpt-ejercicios", "gobiernoslocales_2022.geojson"))
+
+set.seed(123) 
+muestra_loc <- partidos |> 
+  slice_sample(n = 120) 
+
+box_b <- muestra_loc |>
+  filter(nam_prov %in% c("Entre Ríos", "Santa Fe", "Córdoba"))
+
+box_c <- muestra_loc |>
+  filter(nam_prov %in% c("Entre Ríos", "Santa Fe", "Córdoba"))|>
+  st_bbox() |> 
+  st_as_sfc(crs = st_crs(mapa))
+
+rec_zoom <- st_crop(mapa, box_c)
+  
+mapa_1 <- ggplot() +
+  geom_sf(data = rec_zoom,
+          fill = "#9069C0", color = "#EBD2FB",
+          linewidth = 0.1) +
+  geom_sf (data = box_b)
+  
+mapa_2 <-ggplot() +
+  geom_sf(data = mapa,
+          fill = "#9069C0", color = "#EBD2FB",
+          linewidth = 0.1) +
+  geom_sf(data = muestra_loc)
+mapa_2/mapa_1
+
+
+mapa1 <- ggplot() +
+  geom_sf(data = mapa,
+          fill = "#9069C0", color = "#EBD2FB",
+          linewidth = 0.1) +
+  geom_sf(data = box_c,
+          fill="black",  size = 1 )
+
+mapa2 <- ggplot() +
+  geom_sf(data = mapa,
+          fill = "#9069C0", color = "#EBD2FB",
+          linewidth = 0.1) +
+  geom_sf(data = muestra_loc,
+          fill="black",  size = 1 )
+
+mapa1 + mapa2
+
+
+
+
+
 ```
 

@@ -169,3 +169,114 @@ Ahora sí → st_buffer(50000)
 
 
 ```
+
+Un **inset** (o **mapa de detalle**) es un **segundo mapa, más pequeño, que se coloca dentro del mapa principal** para mostrar con mayor detalle una zona de interés.
+
+Por ejemplo, imaginá que tu mapa principal es toda Argentina:
+
+```{text}
++-----------------------------------------+
+|                                         |
+|                Argentina                |
+|                                         |
+|                                         |
+|                           +---------+   |
+|                           | CABA    |   |
+|                           | Detalle |   |
+|                           +---------+   |
++-----------------------------------------+
+```
+
+El mapa grande responde a la pregunta:
+
+> **¿Dónde está el fenómeno dentro del país?**
+
+El inset responde a otra:
+
+> **¿Cómo es ese fenómeno cuando hago zoom?**
+
+------------------------------------------------------------------------
+
+## ¿Por qué existe?
+
+Porque muchas veces hay un conflicto entre dos objetivos:
+
+1.  Mostrar el contexto nacional.
+2.  Mostrar el detalle local.
+
+Si hacés zoom sobre Buenos Aires, perdés el contexto de Argentina.
+
+Si mostrás toda Argentina, Buenos Aires queda diminuta.
+
+El inset resuelve ese problema mostrando **las dos escalas al mismo tiempo**.
+
+------------------------------------------------------------------------
+
+## Un ejemplo real
+
+Pensá en un mapa de Argentina donde se marcan todas las universidades nacionales.
+
+En el mapa nacional, las universidades del AMBA aparecen casi una encima de la otra.
+
+Entonces el cartógrafo agrega un inset:
+
+``` text
+Argentina
+      ↓
+      ○ Buenos Aires
+
+Inset
+──────────────────
+○ UBA
+○ UNSAM
+○ UNTREF
+○ UNLaM
+○ UNQ
+○ UNLP
+...
+```
+
+Ahora el lector entiende dos cosas:
+
+- dónde está la concentración;
+- cómo se distribuye internamente.
+
+------------------------------------------------------------------------
+
+## En tu ejercicio
+
+Vos detectaste una concentración entre Córdoba, Santa Fe y Entre Ríos.
+
+Una posible solución sería:
+
+- **Mapa principal:** toda Argentina con las 120 localidades.
+- **Inset:** un recorte ampliado de esa región para que los puntos no se superpongan.
+
+Fijate que **no eliminaste información**. Solo la mostraste a dos escalas diferentes.
+
+------------------------------------------------------------------------
+
+## ¿Cómo se hace en R?
+
+Todavía no quiero que pensemos en código.
+
+Primero quiero que entiendas la idea.
+
+Después veremos herramientas como:
+
+- `patchwork`,
+- `cowplot`,
+- `annotation_custom()`,
+- o incluso `ggdraw()`.
+
+Todas sirven para combinar mapas, pero la decisión de usar un inset **es cartográfica**, no técnica.
+
+------------------------------------------------------------------------
+
+### Una pequeña reflexión
+
+Este concepto tiene mucho que ver con algo que vos enseñás en Geopolítica.
+
+Cuando explicás un conflicto internacional, a veces empezás con un mapa mundial y después hacés zoom en el Mar de China Meridional, el Estrecho de Ormuz o el Mar Negro.
+
+Eso, en esencia, ya es un **inset conceptual**: mantenés la escala global para el contexto y abrís una ventana para analizar el detalle. La cartografía hace exactamente lo mismo, pero de manera visual.
