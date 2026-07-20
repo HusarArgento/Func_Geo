@@ -495,6 +495,7 @@ Y recién después escribir el primer `ggplot()`.
 Esa, para mí, es la diferencia entre alguien que programa mapas y alguien que los diseña. Y, sinceramente, creo que ya estás bastante cerca de empezar esa transición.
 
 ```{r}
+
 partidos <- st_read(dsn = here::here("data", "gpt-ejercicios", "gobiernoslocales_2022.geojson"))
 
 set.seed(123) 
@@ -504,8 +505,7 @@ muestra_loc <- partidos |>
 box_b <- muestra_loc |>
   filter(nam_prov %in% c("Entre Ríos", "Santa Fe", "Córdoba"))
 
-box_c <- muestra_loc |>
-  filter(nam_prov %in% c("Entre Ríos", "Santa Fe", "Córdoba"))|>
+box_c <-box_b|>
   st_bbox() |> 
   st_as_sfc(crs = st_crs(mapa))
 
@@ -525,25 +525,54 @@ mapa_2 <-ggplot() +
 mapa_2/mapa_1
 
 
-mapa1 <- ggplot() +
-  geom_sf(data = mapa,
+```
+
+```{r}
+
+rec2 <- st_bbox (
+  c(xmin = -67, 
+    ymin = -35, 
+    xmax = -57, 
+    ymax = -27
+    ),
+  crs = st_crs(mapa)
+                  ) |> 
+    st_as_sfc()
+
+rec_zoom2 <- st_crop(mapa, rec2)
+
+ggplot() +
+  geom_sf(data = rec_zoom2,
           fill = "#9069C0", color = "#EBD2FB",
           linewidth = 0.1) +
-  geom_sf(data = box_c,
-          fill="black",  size = 1 )
-
-mapa2 <- ggplot() +
-  geom_sf(data = mapa,
-          fill = "#9069C0", color = "#EBD2FB",
-          linewidth = 0.1) +
-  geom_sf(data = muestra_loc,
-          fill="black",  size = 1 )
-
-mapa1 + mapa2
+  geom_sf (data = box_b)
 
 
+```
 
+```{r}
+ggplot() +
 
+  # 1. Fondo poligonal
+  geom_sf(
+    data = mapa,
+    fill = "#9069C0",
+    color = "#EBD2FB",
+    linewidth = 0.1
+  ) +
 
+  # 2. Todas las localidades (gris)
+  geom_sf(
+    data = muestra_loc,
+    color = "grey70",
+    size = 1
+  ) +
+
+  # 3. Localidades del área de interés (rojo)
+  geom_sf(
+    data = box_b,
+    color = "red",
+    size = 2
+  )
 ```
 
