@@ -576,3 +576,52 @@ ggplot() +
   )
 ```
 
+
+```{r}
+centroide_log <- box_b |> 
+  summarise()|>
+  st_centroid()
+```
+
+```{r}
+distancias <- st_distance(
+  centroide_log,
+  box_b
+)
+```
+
+```{r}
+cercanas <- distancias |> filter()
+```
+
+```{r}
+vec_5_menores <- sort(distancias)[1:5]
+```
+
+```{r}
+rownames(distancias)
+```
+
+
+```{r}
+colnames(distancias)
+```
+```{r}
+m <- matrix(1:6, nrow = 2)
+
+m
+```
+```{r}
+box_b <- box_b |>
+  mutate(
+    distancia = as.vector(distancias)
+  )
+
+```
+
+```{r}
+ordenada <- arrange(box_b) |>
+  slice_head(n = 5)
+```
+  
+  

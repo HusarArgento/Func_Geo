@@ -1,0 +1,146 @@
+---
+title: "st_binarios"
+format: html
+editor: visual
+---
+
+## Quarto
+
+Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.
+
+## Running Code
+
+When you click the **Render** button a document will be generated that includes both content and the output of embedded code. You can embed code like this:
+
+```{r}
+1 + 1
+```
+
+You can add options to executable code like this
+
+```{r}
+#| echo: false
+2 * 2
+```
+
+The `echo: false` option disables the printing of code (only output is displayed).
+
+Muy bien. Veo que ya estás empezando a leer la documentación de otra manera. Vamos a razonar esto juntos.
+
+La documentación dice, simplificando:
+
+```{r}         
+st_distance(x, y, by_element = FALSE) 
+```
+
+Y explica:
+
+- `by_element = FALSE` → devuelve **una matriz** de distancias.
+
+- `by_element = TRUE` → devuelve **un vector**, pero **x e y deben tener la misma cantidad de geometrías**.
+
+Ahora pensemos en **nuestro problema**, no en la función.
+
+## ¿Qué tenemos?
+
+El centroide:
+
+```{r}         
+1 geometría 
+```
+
+Las localidades:
+
+```{r}         
+80 geometrías 
+```
+
+Lo que queremos saber es:
+
+> **¿A qué distancia está cada localidad del centroide?**
+
+Eso significa conceptualmente:
+
+``` {r}        
+                 Centroide  
+Localidad 1  -----------> distancia  
+Localidad 2  -----------> distancia  
+Localidad 3  -----------> distancia  
+...  
+Localidad 80 -----------> distancia 
+```
+
+¿Cuántas distancias esperamos obtener?
+
+**80.**
+
+## Entonces pensemos qué devolvería cada opción.
+
+### `by_element = TRUE`
+
+La documentación dice que compara
+
+```{r}         
+x1 con y1  x2 con y2  x3 con y3 
+```
+
+Es decir, **uno a uno**.
+
+Pero nosotros tenemos:
+
+```{r}         
+x = 1 geometría  y = 80 geometrías 
+```
+
+¿Existe un:
+
+```{r}         
+x2 ?  x3 ?  x80 ? 
+```
+
+No.Entonces esa opción no tiene sentido para nuestro caso.
+
+### `by_element = FALSE`
+
+Ahora la función construye la matriz completa. En nuestro caso sería una matriz de
+
+```{r}         
+1 × 80 
+```
+
+Algo así:
+
+```{r}         
+          Loc1  Loc2  Loc3 ... Loc80  Centroide   5     8     13       20 
+```
+
+Una fila.
+
+Ochenta columnas.
+
+Eso es exactamente lo que queremos.
+
+## Acá viene una observación que me gustaría que incorpores
+
+Vos dijiste:
+
+> "¿Debería ponerle FALSE entonces?"
+
+Mi respuesta sería:
+
+> **Ni siquiera hace falta ponerlo.**
+
+Porque el valor por defecto ya es
+
+```         
+by_element = FALSE 
+```
+
+Yo escribiría simplemente:
+
+```{r}         
+distancias <- st_distance(   centroide_log,   box_b ) 
+```
+
+
+¿Qué necesitás obtener de esas 80 distancias para seguir resolviendo el problema del cliente? Porque ahí está el siguiente paso metodológico.

@@ -132,6 +132,40 @@ Es decir:
 
 > **"Reducí todas las filas a una sola y, como geometría de esa fila, usá la combinación de todos los puntos."**
 
+```{r}
+centroide_tri <- box_b |> 
+  summarise(geometria = st_union(geometry) )|>
+  st_centroid()
+.
+```
+
+1.  El st_union() es redundante
+
+Acá:
+
+```{r}
+
+summarise(geometria = st_union(geometry))
+
+
+```
+
+¿Quién está haciendo la unión, summarise() o st_union()?
+
+La respuesta es: los dos. Como vimos hace un rato, summarise() sobre un objeto sf ya realiza la unión geométrica por defecto (do_union = TRUE). Entonces, salvo que tengas un motivo especial, alcanzaría con:
+
+```{r}
+centroide_tri <- box_b |>
+  summarise() |>
+  st_centroid()
+```
+
+2.  El nombre geometria
+
+Tampoco hace falta.
+
+Porque la columna de geometría ya existe y sf la gestiona automáticamente. Es decir, no necesitás crear una nueva columna llamada geometria.
+
 ## Finalmente
 
 ```{r}
@@ -262,8 +296,6 @@ st_crop(
 
 Eso significa que `st_crop()` está diciendo:
 
-> 
->
 > **"Conservá únicamente la parte de la geometría que quede dentro de este rectángulo."**
 
 Es casi como hacer la operación inversa de `st_bbox()`.
@@ -297,3 +329,36 @@ st_crop()
 
 Análisis reproducible
 ```
+
+| ¿Qué quiero ordenar?           | Función     |
+|--------------------------------|-------------|
+| Un vector                      | `sort()`    |
+| Una tabla (`data.frame`, `sf`) | `arrange()` |
+
+ero en `dplyr` quisieron que todas las operaciones de "recortar filas" tuvieran la misma familia:
+
+- 
+
+-  `slice_head()` → primeras filas.
+
+- 
+
+-  `slice_tail()` → últimas filas.
+
+- 
+
+-  `slice_sample()` → muestra aleatoria (¡la usamos hace unos días!).
+
+- 
+
+-  `slice_min()` → filas con los valores mínimos.
+
+- 
+
+-  `slice_max()` → filas con los valores máximos.
+
+- 
+
+¿Notás el patrón?
+
+Toda la familia empieza con **`slice_`**.
