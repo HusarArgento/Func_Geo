@@ -1,0 +1,431 @@
+---
+title: "Indices"
+author: "LSM"
+format: html
+editor: visual
+---
+
+## Quarto
+
+Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.
+
+## Running Code
+
+When you click the **Render** button a document will be generated that includes both content and the output of embedded code. You can embed code like this:
+
+```{r}
+1 + 1
+```
+
+You can add options to executable code like this
+
+```{r}
+#| echo: false
+2 * 2
+```
+
+Lo primero que te diría es que **no sumaría directamente las distancias**.
+
+¿Por qué?
+
+Porque imaginemos esto:
+
+| Localidad | Distancia al centroide | Distancia a ruta |
+|-----------|-----------------------:|-----------------:|
+| A         |                   5 km |            200 m |
+| B         |                  15 km |            300 m |
+
+Si hacés
+
+``` text
+0.5 × distancia_centroide +
+0.5 × distancia_ruta
+```
+
+estás mezclando kilómetros con metros.
+
+Y además, una variable tiene un rango enorme respecto de la otra.
+
+------------------------------------------------------------------------
+
+## Paso 1. Normalizar
+
+Lo primero sería llevar ambas variables a una misma escala.
+
+Por ejemplo, entre 0 y 1.
+
+Una normalización muy común es:
+
+![](images/clipboard-2206556760.png)
+
+\[ x'=\frac{x-\min(x)}{\max(x)-\min(x)}\]
+
+Así obtenés algo como:
+
+| Localidad | Centroide_norm | Ruta_norm |
+|-----------|---------------:|----------:|
+| A         |           0.10 |      0.30 |
+| B         |           0.60 |      0.15 |
+| C         |           1.00 |      0.80 |
+
+Ahora ambas variables son comparables.
+
+------------------------------------------------------------------------
+
+## Paso 2. Construir el índice
+
+Por ejemplo:
+
+![](images/clipboard-3413313320.png)
+
+Pero...
+
+## Acá aparece una pregunta metodológica.
+
+¿Qué significa un valor grande?
+
+En nuestras variables,
+
+**más distancia = peor.**
+
+Entonces ese índice estaría diciendo:
+
+> valores altos = malas localidades.
+
+A mí no me gusta.
+
+Yo prefiero que un índice tenga la interpretación:
+
+> **más alto = mejor.**
+
+Entonces invertiría las variables.
+
+Por ejemplo:
+
+\[ Centralidad = 1 - Centroide\_{norm}\]
+
+\[ Accesibilidad = 1 - Ruta\_{norm}\]
+
+Ahora sí:
+
+- 1 = excelente
+- 0 = pésimo
+
+Y el índice queda:
+
+![](images/clipboard-3134518919.png)
+
+\[ Indice = 0.6\*Centralidad + 0.4\* Accesibilidad\]
+
+------------------------------------------------------------------------
+
+## ¿Y de dónde salen esos pesos?
+
+Esa es la mejor pregunta de todas.
+
+Hay varias posibilidades.
+
+### Caso 1. El cliente decide
+
+Por ejemplo:
+
+> "La accesibilidad es mucho más importante."
+
+Entonces:
+
+80%
+
+20%
+
+------------------------------------------------------------------------
+
+### Caso 2. Vos los justificás
+
+Por ejemplo:
+
+> "Como el objetivo principal es abastecer una red ya existente, la centralidad pesa más."
+
+Y elegís
+
+60%
+
+40%
+
+------------------------------------------------------------------------
+
+### Caso 3. Todos iguales
+
+Es el caso más común cuando no hay información.
+
+50%
+
+50%
+
+------------------------------------------------------------------------
+
+## Yo incluso haría algo más
+
+No entregaría un solo resultado.
+
+Le mostraría al cliente:
+
+**Escenario A**
+
+- Centralidad 70%
+- Accesibilidad 30%
+
+------------------------------------------------------------------------
+
+**Escenario B**
+
+- 50%
+- 50%
+
+------------------------------------------------------------------------
+
+**Escenario C**
+
+- 30%
+- 70%
+
+Y le diría:
+
+> "Observe que la localidad elegida cambia únicamente cuando la accesibilidad pesa mucho más."
+
+Eso se llama **análisis de sensibilidad**, y es muy usado en evaluación multicriterio.
+
+------------------------------------------------------------------------
+
+## Mi crítica al ejercicio (que también es una mejora)
+
+Fijate cómo empezó:
+
+> "Encontrar una localidad."
+
+Y ya estamos discutiendo:
+
+- normalización,
+- ponderación,
+- construcción de indicadores,
+- análisis de sensibilidad.
+
+Eso ya se parece bastante a un trabajo aplicado de SIG.
+
+------------------------------------------------------------------------
+
+### Una idea para seguir creciendo
+
+Hay un método muy conocido en análisis multicriterio que creo que te va a gustar mucho por tu formación en Ciencia Política: **AHP (Analytic Hierarchy Process)** de Thomas Saaty.
+
+¿Por qué creo que te gustaría?
+
+Porque no dice "estos pesos son 0,6 y 0,4 porque sí".
+
+Los construye mediante comparaciones por pares y un razonamiento explícito sobre la importancia relativa de los criterios. Es decir, transforma un juicio cualitativo ("la accesibilidad es moderadamente más importante que la centralidad") en pesos cuantitativos consistentes.
+
+Creo que es uno de esos puentes muy interesantes entre la teoría de la decisión y los SIG, y encaja muy bien con la forma en que vos razonás los problemas.
+
+Supongamos que después del ejercicio obtenemos estas distancias al centroide:
+
+| Localidad | Distancia al centroide (km) |
+|-----------|-----------------------------|
+| Paraná    | 5                           |
+| Rosario   | 8                           |
+| Santa Fe  | 12                          |
+| Rafaela   | 20                          |
+| Esperanza | 30                          |
+
+La pregunta es:
+
+>  ¿Cómo comparo esta variable con otra que está en una escala completamente distinta?
+
+Por ejemplo, la distancia a la ruta:
+
+| Localidad | Distancia a la ruta (m) |
+|-----------|-------------------------|
+| Paraná    | 100                     |
+| Rosario   | 500                     |
+| Santa Fe  | 250                     |
+| Rafaela   | 900                     |
+| Esperanza | 1200                    |
+
+Fijate que una variable está en **kilómetros** y la otra en **metros**. Si las sumo directamente, una domina a la otra dependiendo de la unidad elegida.
+
+Por eso las transformamos a una escala común
+
+La fórmula que te mostré fue:
+
+![](images/clipboard-656795977.png)
+
+Lo que hace es tomar **cada valor** de la variable.
+
+En nuestro ejemplo, para la distancia al centroide:
+
+- 
+
+-  mínimo = **5 km**
+
+- 
+
+-  máximo = **30 km**
+
+- 
+
+![](images/clipboard-1872154309.png).
+
+El resultado queda:
+
+| Localidad | Distancia | Distancia normalizada |
+|-----------|-----------|-----------------------|
+| Paraná    | 5         | 0.00                  |
+| Rosario   | 8         | 0.12                  |
+| Santa Fe  | 12        | 0.28                  |
+| Rafaela   | 20        | 0.60                  |
+| Esperanza | 30        | 1.00                  |
+
+Ahora ya no importa si la variable original estaba en kilómetros, metros o millas.
+
+**Todas quedaron entre 0 y 1.**
+
+### ¿Pero por qué hacemos esto?
+
+Porque ahora podemos hacer exactamente lo mismo con la distancia a la ruta.
+
+Al final tendremos dos columnas:
+
+| Localidad | Centroide_norm | Ruta_norm |
+|-----------|----------------|-----------|
+| Paraná    | 0.00           | 0.05      |
+| Rosario   | 0.12           | 0.35      |
+| Santa Fe  | 0.28           | 0.12      |
+| ...       | ...            | ...       |
+
+Y recién ahí tiene sentido combinarlas.
+
+Miremos el ejemplo:
+
+| Localidad | Centroide_norm | Ruta_norm |
+|-----------|----------------|-----------|
+| Paraná    | 0.00           | 0.05      |
+
+Si el índice fuera:
+
+Indice=0.5*Centroide(norm) + 0.5*Ruta(norm)
+
+Para Paraná sería:
+
+0.5*0 + 0.5*0.05=0.025
+
+Entonces el índice es **0.025**, no 0.
+
+## Pero ahora aparece el verdadero problema
+
+¿Qué significa un índice chico?
+
+En este ejemplo:
+
+- 
+
+-  Paraná → 0.025
+
+- 
+
+-  Rosario → 0.24
+
+- 
+
+-  Santa Fe → 0.20
+
+- 
+
+Entonces...
+
+**¿Quién es mejor?**
+
+Según este índice,
+
+**el menor valor es el mejor**.
+
+Y eso no está mal.
+
+Muchísimos índices funcionan así.
+
+Por ejemplo:
+
+- 
+
+-  índice de pobreza → más alto = peor.
+
+- 
+
+-  tasa de mortalidad → más alta = peor.
+
+- 
+
+-  distancia → más grande = peor.
+
+- 
+
+## ¿Por qué yo proponía invertirlo?
+
+Porque a mí me resulta más intuitivo leer:
+
+> 
+>
+> **0 = muy malo**
+
+> 
+>
+> **1 = excelente**
+
+Entonces transformaría las variables.
+
+Por ejemplo:
+
+| Localidad | Centroide_norm | Centralidad |
+|-----------|----------------|-------------|
+| Paraná    | 0.00           | **1.00**    |
+| Rosario   | 0.20           | **0.80**    |
+| Santa Fe  | 0.60           | **0.40**    |
+
+¿Cómo hice eso?
+
+Simplemente:
+
+Centralidad = 1 − Centroide(norm)
+
+Entonces Paraná quedaría:
+
+| Localidad | Centralidad | Accesibilidad |
+|-----------|-------------|---------------|
+| Paraná    | 1.00        | 0.95          |
+
+Ahora el índice sería
+
+0.5×1+0.5×0.95=0.9750.5\times1 + 0.5\times0.95 = 0.9750.5×1+0.5×0.95=0.975
+
+Y ese número se interpreta inmediatamente:
+
+> 
+>
+> **0.975 = excelente.**
+
+## ¿Cuál de los dos es correcto?
+
+Los dos.
+
+Esta es una decisión de diseño.
+
+Yo prefiero que:
+
+- 
+
+-  un índice alto = bueno;
+
+- 
+
+-  un índice bajo = malo.
+
+- 
+
+Pero podrías perfectamente dejarlo al revés.

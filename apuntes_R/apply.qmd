@@ -1,0 +1,212 @@
+---
+title: "Apply"
+author: "LSM"
+format: html
+editor: visual
+---
+
+## Quarto
+
+Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.
+
+## Running Code
+
+When you click the **Render** button a document will be generated that includes both content and the output of embedded code. You can embed code like this:
+
+```{r}
+1 + 1
+```
+
+You can add options to executable code like this
+
+```{r}
+#| echo: false
+2 * 2
+```
+
+
+---
+
+## Empecemos por el primero
+
+### `X`
+
+La documentación dice:
+
+> an array, including a matrix
+
+Yo lo traduciría como:
+
+> **¿Sobre qué objeto querés trabajar?**
+
+En nuestro caso:
+
+```{r}
+distancias
+```
+
+Nada más.
+
+---
+
+## `MARGIN`
+
+La documentación dice:
+
+> a vector giving the subscripts...
+
+😒 Yo jamás escribiría eso para enseñar.
+
+Lo traduciría así:
+
+> **¿Querés recorrer filas o columnas?**
+
+Y listo.
+
+| Valor | Significa         |
+| ----- | ----------------- |
+| `1`   | recorrer filas    |
+| `2`   | recorrer columnas |
+
+Eso es TODO lo que necesitás saber hoy.
+
+---
+
+## `FUN`
+
+La documentación dice:
+
+> the function to be applied
+
+Yo diría:
+
+> **¿Qué querés hacer con cada fila o columna?**
+
+Por ejemplo:
+
+* calcular el mínimo → `min`
+* calcular el máximo → `max`
+* calcular la media → `mean`
+* calcular la suma → `sum`
+
+---
+
+## Entonces...
+
+`apply()` empieza a verse así:
+
+```{text}
+apply(
+  objeto,
+  ¿filas o columnas?,
+  ¿qué hago?
+)
+```
+
+Y de golpe deja de ser intimidante.
+
+---
+
+## Ahora llevémoslo a nuestro ejercicio
+
+Tenemos esto:
+
+|          | Ruta1 | Ruta2 | Ruta3 |
+| -------- | ----: | ----: | ----: |
+| Paraná   |    10 |     4 |     8 |
+| Rosario  |     5 |     2 |     6 |
+| Santa Fe |     7 |     9 |     3 |
+
+Queremos:
+
+Para cada localidad,
+
+↓
+
+buscar
+
+↓
+
+la menor distancia.
+
+Entonces preguntémonos.
+
+### ¿Sobre qué objeto?
+
+La matriz.
+
+↓
+
+```r
+distancias
+```
+
+---
+
+### ¿Qué queremos recorrer?
+
+Las localidades.
+
+Las localidades están en...
+
+**las filas**.
+
+↓
+
+```r
+1
+```
+
+---
+
+### ¿Qué queremos calcular?
+
+El mínimo.
+
+↓
+
+```r
+min
+```
+
+---
+
+Y ahora, sin que yo escriba el código completo, ¿te animás a completarlo?
+
+```r
+apply(
+   ________,
+   ________,
+   ________
+)
+```
+
+---
+
+## Y te voy a decir una cosa.
+
+Hoy entendí definitivamente cómo enseñarte.
+
+No voy a volver a empezar por la sintaxis.
+
+Porque fijate la diferencia.
+
+La documentación empieza diciendo:
+
+> `MARGIN`
+
+Yo empezaría diciendo:
+
+> **¿Querés recorrer filas o columnas?**
+
+Y recién después te diría que eso en R se llama `MARGIN`.
+
+Creo que ahí está el choque entre tu formación y la de los programadores.
+
+Vos necesitás primero entender **la idea**.
+
+Después el nombre.
+
+Ellos escriben al revés.
+
+Y, sinceramente... creo que para enseñar, tu orden tiene bastante más sentido.

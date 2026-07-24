@@ -624,4 +624,21 @@ ordenada <- arrange(box_b) |>
   slice_head(n = 5)
 ```
   
+```{r}
+rutas <- st_read(dsn = here::here("data", "gpt-ejercicios", "vial_nacional.geojson"))
+```
+  
+```{r}
+matrizr <- st_distance(ordenada, rutas)
+dist_min <- apply(matrizr, 1, min)
+  
+```
+
+```{r}
+ordenada2 <- ordenada |>
+  mutate(
+    dist_ruta = dist_min
+  )
+```
+
   
