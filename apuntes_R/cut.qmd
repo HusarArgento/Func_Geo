@@ -1,0 +1,124 @@
+---
+title: "Cut"
+author: "LSM"
+format: html
+editor: visual
+---
+
+## Quarto
+
+Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.
+
+## Running Code
+
+When you click the **Render** button a document will be generated that includes both content and the output of embedded code. You can embed code like this:
+
+```{r}
+1 + 1
+```
+
+You can add options to executable code like this
+
+```{r}
+#| echo: false
+2 * 2
+```
+
+The `echo: false` option disables the printing of code (only output is displayed).
+
+```{r}
+
+```
+
+`cut()` sirve para **transformar una variable numérica continua en una variable categórica por intervalos**.
+
+Dicho más simple:
+
+> **Agarra números y los mete en "cajas" o rangos.**
+
+El ejemplo que vimos:
+
+```{r}         
+df$EDAD_CAT <- cut(   df$EDAD,   breaks = c(9, 29, 49, 69, 70),   labels = c("10-29", "30-49", "50-69", "NS/NC") ) 
+```
+
+Supongamos que:
+
+```{r}         
+df$EDAD 
+```
+
+es:
+
+```{r}         
+15 34 52 70 
+```
+
+`cut()` mira los límites:
+
+```{r}         
+breaks = c(9, 29, 49, 69, 70) 
+```
+
+y crea intervalos:
+
+```{r}         
+(9,29] (29,49] (49,69] (69,70] 
+```
+
+Después asigna las etiquetas por posición:
+
+| Edad | Intervalo | Etiqueta |
+|------|-----------|----------|
+| 15   | (9,29\]   | 10-29    |
+| 34   | (29,49\]  | 30-49    |
+| 52   | (49,69\]  | 50-69    |
+| 70   | (69,70\]  | NS/NC    |
+
+El resultado deja de ser una edad numérica y pasa a ser una **categoría**.
+
+Un ejemplo más típico:
+
+Tenés ingresos:
+
+```{r}         
+ingresos <- c(150, 800, 2500, 7000) 
+```
+
+Podrías hacer:
+
+```{r}         
+cut(   ingresos,   breaks = c(0,1000,5000,10000),   labels = c("Bajo","Medio","Alto") ) 
+```
+
+Resultado:
+
+```{r}         
+Bajo Bajo Medio Alto 
+```
+
+La idea conceptual es:
+
+Antes:
+
+```{r}         
+EDAD 15 34 52 70 
+```
+
+Después:
+
+```{r}         
+GRUPO_EDAD 10-29 30-49 50-69 70+ 
+```
+
+En análisis social, territorial o geográfico aparece muchísimo porque muchas variables son más interpretables como categorías:
+
+- edad → grupos etarios
+
+- ingreso → quintiles o estratos
+
+- distancia → cercanía/media/lejanía
+
+- población → baja/media/alta densidad
+
+Una aclaración importante: `cut()` **no calcula nada nuevo sobre la variable**. No cambia los valores originales; crea una clasificación basada en los cortes que vos le indicás. Es como poner etiquetas a números según dónde caigan.

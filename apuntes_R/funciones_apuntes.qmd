@@ -1,0 +1,1267 @@
+---
+title: "funciones_apuntes"
+author: "LSM"
+format: html
+editor: visual
+---
+
+## Quarto
+
+Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.
+
+## Running Code
+
+When you click the **Render** button a document will be generated that includes both content and the output of embedded code. You can embed code like this:
+
+```{r}
+1 + 1
+```
+
+You can add options to executable code like this
+
+```{r}
+#| echo: false
+2 * 2
+```
+
+The `echo: false` option disables the printing of code (only output is displayed).
+
+¡Sí! De hecho, esta vez tu intuición es completamente correcta.
+
+```{r}
+map(1:3, \(x) x * 3)
+```
+
+es otra forma de escribir:
+
+```{r}
+map(1:3, function(x){
+  x * 3
+})
+```
+
+La parte
+
+```{r}
+\(x)
+```
+
+significa:
+
+> **"Estoy definiendo una función cuyo argumento se llama `x`."**
+
+Después viene el cuerpo de la función:
+
+```{r}
+x * 3
+```
+
+Entonces R interpreta todo junto como:
+
+```{r}
+\(x) x * 3
+```
+
+↓
+
+```{r}
+function(x){
+  x * 3
+}
+```
+
+------------------------------------------------------------------------
+
+## ¿Qué hace `map()`?
+
+Primera iteración:
+
+```{r}
+x = 1
+```
+
+Calcula:
+
+```{r}
+1 * 3
+```
+
+↓
+
+```{r}
+3
+```
+
+Segunda:
+
+```{r}
+x = 2
+```
+
+↓
+
+```{r}
+6
+```
+
+Tercera:
+
+```{r}
+x = 3
+```
+
+↓
+
+```{r}
+9
+```
+
+------------------------------------------------------------------------
+
+## Compará las tres sintaxis
+
+La clásica:
+
+```{r}
+function(x){
+  x * 3
+}
+```
+
+La moderna de R:
+
+```{r}
+\(x) x * 3
+```
+
+La de `purrr`:
+
+```{r}
+~ .x * 3
+```
+
+Las tres hacen exactamente lo mismo.
+
+------------------------------------------------------------------------
+
+### Una pequeña precisión
+
+Dijiste:
+
+```{text}
+> "el argumento actual x de una función"
+
+```
+
+Yo lo reformularía apenas:
+
+```{text}
+> **"`x` es el parámetro de la función. En cada llamada, ese parámetro recibe el valor actual."**
+```
+
+Es una diferencia sutil entre **parámetro** y **argumento**:
+
+- En la definición:
+
+```{r}
+\(x)
+```
+
+`x` es un **parámetro** (la variable que declara la función).
+
+- Cuando `map()` ejecuta la función:
+
+```{r}
+x = 1
+x = 2
+x = 3
+```
+
+los valores `1`, `2` y `3` son los **argumentos** que recibe la función en cada llamada.
+
+En la práctica, mucha gente usa ambos términos como sinónimos en una conversación informal, pero conceptualmente esa es la distinción.
+
+Y aprovecho para señalar algo: hace unas horas veías símbolos como `~`, `\(x)` o `.x` como si fueran "hechizos". Ahora ya los estás traduciendo a la idea correcta:
+
+```{text}
+> "Ah, esto es simplemente una función que recibe un valor."
+
+```
+
+Ese cambio de perspectiva es mucho más importante que memorizar la sintaxis concreta.
+
+# Funcionales ------------------------------------
+
+```{r}
+  # Toma un vector y una función, llama a la función una vez para cada elemento
+  # del vector y devuelve los resultados en una lista.
+
+  triple_raro <- function(x){
+    if(x > 2){
+      res <- x * 3
+    }else{
+      res <- 0
+    }
+    return(res)
+  }
+```
+
+```{r}
+  map(1:3, triple_raro)
+
+  triple <- function(x) x * 3
+
+  map(1:3, triple)
+  # Equivalente a:
+  map(1:3, ~.x*3)
+  map(1:3, \(x) x*3)
+
+```
+
+```{r}
+  # Puedo definir el tipo de salida
+  map_int(1:3, \(x) x*3)
+  map_chr(1:3, \(x) LETTERS[x*3])
+  map_lgl(1:3, \(x) x*3 > 0)
+
+```
+
+```{r}
+  # Puedo incorporar más variables que iteren conjuntamente
+  xs <- map(1:8, ~ runif(10))
+  ws <- map(1:8, ~ rpois(10, 5) + 1)
+
+  map2_dbl(xs, ws, weighted.mean)
+
+```
+
+```{r}
+  # ...extraer la pendiente...
+  res_lm |>
+    map(coef) %>%
+    map_dbl(2)
+
+  # Extra: agregamos el modelo a una columna de un data frame resumen.
+  mtcars_cyl <- mtcars |>
+    group_by(cyl) |>
+    summarise(across(where(is.numeric), mean)) |>
+    mutate(modelo_lm = res_lm)
+
+  mtcars_cyl
+  mtcars_cyl$modelo_lm[1]
+  mtcars_cyl$modelo_lm[2]
+
+  rm(by_cyl, res_lm, mtcars_cyl, triple, triple_raro)
+
+
+```
+
+Este sí es un buen ejemplo para detenerse porque aparecen **dos funciones a la vez** (`map()` y `runif()`), y si no conocés una de ellas, el código parece incomprensible.
+
+El código es:
+
+```{r}
+xs <- map(1:8, ~ runif(10))
+
+```
+
+## Paso 1: ¿Qué hace `runif()`?
+
+`runif()` significa **Random Uniform** (números aleatorios con distribución uniforme).
+
+Si escribís:
+
+```{r}
+runif(5)
+```
+
+R devuelve algo como:
+
+```{text}
+0.13
+0.87
+0.42
+0.05
+0.91
+```
+
+Cada vez que lo ejecutes, los números serán distintos.
+
+El `10` significa:
+
+> **"Generá 10 números aleatorios."**
+
+------------------------------------------------------------------------
+
+## Paso 2: ¿Qué hace `map()`?
+
+Ya sabemos que:
+
+```{r}
+map(1:8, ...)
+```
+
+va a recorrer:
+
+```{text}
+1
+2
+3
+4
+5
+6
+7
+8
+```
+
+Pero fijate algo importante.
+
+En la función:
+
+```{r}
+~ runif(10)
+```
+
+**no aparece `.x`.**
+
+Eso significa que el valor de `1`, `2`, ..., `8` **no se usa para nada**.
+
+Es como si dijera:
+
+```{r}
+"hacé esto ocho veces"
+```
+
+------------------------------------------------------------------------
+
+## Entonces, ¿qué ocurre?
+
+Primera iteración:
+
+```{r}
+runif(10)
+```
+
+↓
+
+```{text}
+0.24
+0.85
+...
+10 números
+```
+
+Segunda iteración:
+
+```{r}
+runif(10)
+```
+
+↓
+
+otros 10 números distintos.
+
+Y así ocho veces.
+
+------------------------------------------------------------------------
+
+## ¿Qué queda guardado en `xs`?
+
+Una lista con 8 elementos.
+
+Cada elemento es un vector de longitud 10.
+
+Podés imaginarlo así:
+
+```{text}
+xs
+
+[[1]]
+10 números
+
+[[2]]
+10 números
+
+[[3]]
+10 números
+
+...
+
+[[8]]
+10 números
+```
+
+------------------------------------------------------------------------
+
+## Si lo escribiéramos con un `for`
+
+Sería algo parecido a:
+
+```{r}
+xs <- list()
+
+for(i in 1:8){
+  xs[[i]] <- runif(10)
+}
+```
+
+Es exactamente la misma idea.
+
+------------------------------------------------------------------------
+
+## Hay un detalle interesante
+
+Vos seguramente esperabas ver algo como:
+
+```{r}
+map(1:8, ~ .x * 3)
+```
+
+porque ahí sí se usa `.x`.
+
+En cambio acá:
+
+```{r}
+~ runif(10)
+```
+
+`.x` **no aparece**.
+
+Eso está perfectamente permitido.
+
+Es una función que **ignora el argumento que recibe**.
+
+Es equivalente a escribir:
+
+```{r}
+function(x){
+  runif(10)
+}
+```
+
+Notá que `x` existe... pero nunca se utiliza.
+
+------------------------------------------------------------------------
+
+### Mi pregunta para vos
+
+A ver si ya lo incorporaste.
+
+Si en lugar de:
+
+```{r}
+runif(10)
+```
+
+el profesor hubiera escrito:
+
+```{r}
+runif(.x)
+```
+
+Perfecto. Empecemos de cero, porque creo que el error fue mío: te expliqué `runif()` antes de explicar **qué papel juega `.x`**.
+
+Olvidate de `runif()` por un minuto.
+
+## ¿Qué hace `map()`?
+
+La idea de `map()` es:
+
+> **Tomar una colección de elementos y ejecutar una función sobre cada uno.**
+
+Por ejemplo:
+
+```{r}
+map(1:3, ...)
+```
+
+significa:
+
+> "Voy a recorrer los elementos `1`, `2` y `3`."
+
+Hasta acá, nada nuevo.
+
+------------------------------------------------------------------------
+
+## ¿Qué es `.x`?
+
+`.x` representa **el elemento que `map()` está procesando en ese momento**.
+
+Por ejemplo:
+
+```{r}
+map(1:3, ~ .x * 2)
+```
+
+`map()` hace esto internamente:
+
+Primera vuelta:
+
+```{r}
+.x = 1
+```
+
+Calcula:
+
+```{r}
+1 * 2
+```
+
+Segunda vuelta:
+
+```{r}
+.x = 2
+```
+
+Calcula:
+
+```{r}
+2 * 2
+```
+
+Tercera vuelta:
+
+```{r}
+.x = 3
+```
+
+Calcula:
+
+```{r}
+3 * 2
+```
+
+Acá `.x` es importante porque aparece en la cuenta.
+
+------------------------------------------------------------------------
+
+## Ahora veamos otro ejemplo
+
+```{r}
+map(1:3, ~ 100)
+```
+
+¿Qué hace la función?
+
+Devuelve siempre:
+
+```{r}
+100
+```
+
+¿Usó `.x`?
+
+No.
+
+Entonces da igual si el elemento actual es 1, 2 o 3.
+
+El resultado será:
+
+```{text}
+100
+100
+100
+```
+
+------------------------------------------------------------------------
+
+## Ahora volvamos a `runif()`
+
+```{r}
+map(1:8, ~ runif(10))
+```
+
+La función dice:
+
+```{r}
+runif(10)
+```
+
+¿Aparece `.x`?
+
+**No.**
+
+Entonces el elemento actual (1, 2, ..., 8) **no influye**.
+
+Lo único que hace `map()` es repetir esa función ocho veces.
+
+Es como si escribieras:
+
+```{r}
+runif(10)
+runif(10)
+runif(10)
+...
+```
+
+ocho veces.
+
+------------------------------------------------------------------------
+
+## En cambio
+
+```{r}
+map(1:8, ~ runif(.x))
+```
+
+Ahora sí aparece `.x`.
+
+Entonces ocurre:
+
+Primera vuelta:
+
+```{r}
+runif(1)
+```
+
+Segunda:
+
+```{r}
+runif(2)
+```
+
+Tercera:
+
+```{r}
+runif(3)
+```
+
+...
+
+Octava:
+
+`{r{} runif(8)`
+
+Porque `.x` vale el elemento actual.
+
+------------------------------------------------------------------------
+
+## La pregunta que yo me hago siempre
+
+Cuando leo un `map()`, busco una sola cosa:
+
+> **¿La función usa el elemento que está recorriendo?**
+
+Si la respuesta es **sí**, voy a encontrar `.x` (o `x` si está escrita como `\(x)`).
+
+Si la respuesta es **no**, la función hace exactamente lo mismo en cada iteración y `.x` no aparece.
+
+```{r}
+ws <- map(1:8, ~ rpois(10, 5) + 1)
+```
+
+Pregunta 1:
+
+> **¿La función usa `.x`?**
+
+La función es:
+
+```{r}
+~ rpois(10, 5) + 1
+```
+
+¿Ves algún `.x`?
+
+**No.**
+
+Entonces ya sabés una cosa importante:
+
+> `map(1:8, ...)` **solo está usando el `1:8` para repetir la función ocho veces.**
+
+Hasta acá ya resolvimos la mitad del ejercicio.
+
+------------------------------------------------------------------------
+
+## Ahora aparece una función nueva: `rpois()`
+
+La sintaxis es:
+
+```{r}
+rpois(n, lambda)
+```
+
+donde:
+
+- `n` = cantidad de números aleatorios a generar.
+- `lambda` = promedio esperado (parámetro de la distribución de Poisson).
+
+No te preocupes todavía por la distribución de Poisson; eso pertenece más a Estadística que a programación.
+
+Lo importante para leer el código es:
+
+```{r}
+rpois(10, 5)
+```
+
+significa:
+
+> "Generá **10 números enteros aleatorios**, cuyo promedio ronda 5."
+
+Podría devolver algo como:
+
+```{text}
+4 7 3 5 6 5 2 8 4 6
+```
+
+Cada ejecución dará números distintos.
+
+------------------------------------------------------------------------
+
+## ¿Y el `+ 1`?
+
+Acá no hay ningún misterio.
+
+Simplemente suma 1 a **cada elemento** del vector que devuelve `rpois()`.
+
+Si `rpois()` generó:
+
+```{text}
+4 7 3 5
+```
+
+después del `+1` queda:
+
+```{text}
+5 8 4 6
+```
+
+En R, cuando sumás un número a un vector, la suma se hace elemento por elemento.
+
+------------------------------------------------------------------------
+
+## Entonces, ¿qué hace todo el código?
+
+```{r}
+ws <- map(1:8, ~ rpois(10, 5) + 1)
+```
+
+Hace esto ocho veces:
+
+1.  Genera 10 números aleatorios enteros alrededor de 5.
+2.  Les suma 1.
+3.  Guarda ese vector.
+
+Al final `ws` es una lista con 8 elementos.
+
+Podés imaginarla así:
+
+```{text}
+ws
+
+[[1]]
+5 8 4 6 7 5 3 9 5 6
+
+[[2]]
+6 4 5 8 5 7 4 6 5 3
+
+...
+
+[[8]]
+...
+
+```
+
+------------------------------------------------------------------------
+
+## Fijate que ya podés leer el código solo
+
+Hoy, cuando aparece un código nuevo, tu cabeza ya debería ir haciendo este razonamiento:
+
+1.  **¿Qué hace `map()`?** → Recorre una colección.
+2.  **¿Usa `.x`?** → No.
+3.  **Entonces?** → Solo repite la función ocho veces.
+4.  **¿Qué hace la función?** → Genera 10 números con `rpois()` y les suma 1.
+
+Eso es exactamente la metodología que queremos desarrollar.
+
+------------------------------------------------------------------------
+
+### Te dejo una pregunta
+
+Ahora quiero comprobar que el concepto quedó firme.
+
+Sin ejecutarlo, ¿qué pensás que haría este código?
+
+```{r}
+map(1:8, ~ rpois(.x, 5) + 1)
+```
+
+1.  **¿Qué colección está recorriendo?** (`1:8`, un vector, una lista, etc.).
+
+2.  **¿La función usa `.x`?**
+
+    - **Sí** → el resultado depende del elemento actual.
+    - **No** → simplemente repite la misma operación tantas veces como elementos haya.
+
+3.  **¿Qué hace la función en sí?** (`runif()`, `rpois()`, `mean()`, etc.).
+
+Con esas tres preguntas ya podés descifrar muchos usos de `map()` sin memorizar la sintaxis.
+
+Así que seguimos cuando quieras con el próximo fragmento del profesor. Ahora lo desarmaste solo:
+
+```{text}
+map() recorre una colección.
+.x es el elemento actual.
+rpois() genera una cantidad de números igual a .x.
+Luego les suma 1.
+
+```
+
+¡Qué buen ejemplo! Y además introduce una idea nueva: **`map2()`**.
+
+Pero antes de explicarlo, hagamos lo que venimos haciendo: no nos apuremos con la sintaxis.
+
+## Paso 1. ¿Qué son `xs` y `ws`?
+
+Unos minutos antes el profesor había creado:
+
+```{r}
+xs <- map(1:8, ~ runif(10))
+```
+
+Vos ya entendiste que esto produce una **lista de 8 elementos**, donde cada elemento es un vector de 10 números.
+
+Algo así:
+
+```{text}
+xs
+
+[[1]] 0.12 0.45 0.91 ...
+[[2]] 0.33 0.81 0.56 ...
+...
+[[8]]
+```
+
+Después hizo:
+
+```{r}
+ws <- map(1:8, ~ rpois(10, 5) + 1)
+```
+
+Que también es una lista de 8 elementos.
+
+Cada elemento tiene 10 números.
+
+Por ejemplo:
+
+```{text}
+ws
+
+[[1]] 4 6 5 7 ...
+[[2]] 8 5 4 6 ...
+...
+[[8]]
+```
+
+---
+
+## Paso 2. ¿Qué hace `map2()`?
+
+Mientras que
+
+```{r}
+map(...)
+```
+
+recorre **una** colección,
+
+```{r}
+map2(...)
+```
+
+recorre **dos colecciones al mismo tiempo**.
+
+Es decir:
+
+```{text}
+xs[[1]]  con  ws[[1]]
+
+xs[[2]]  con  ws[[2]]
+
+xs[[3]]  con  ws[[3]]
+
+...
+
+xs[[8]]  con  ws[[8]]
+```
+
+Las va emparejando.
+
+---
+
+## Paso 3. ¿Qué es `weighted.mean`?
+
+Esta sí probablemente la conocés por estadística.
+
+Es la **media ponderada**.
+
+En lugar de calcular
+
+[
+\frac{x_1+x_2+\cdots+x_n}{n}
+]
+
+calcula
+
+[
+\frac{\sum x_i w_i}{\sum w_i}
+]
+
+donde `w` son pesos.
+
+En R:
+
+```{r}
+weighted.mean(x, w)
+```
+
+recibe
+
+* un vector de datos
+* un vector de pesos
+
+---
+
+## Entonces...
+
+```{r}
+map2_dbl(xs, ws, weighted.mean)
+```
+
+es equivalente a hacer:
+
+Primera vuelta
+
+```{r}
+weighted.mean(xs[[1]], ws[[1]])
+```
+
+Segunda
+
+```{r}
+weighted.mean(xs[[2]], ws[[2]])
+```
+
+Tercera
+
+```{r}
+weighted.mean(xs[[3]], ws[[3]])
+```
+
+...
+
+Octava
+
+```{r}
+weighted.mean(xs[[8]], ws[[8]])
+```
+
+---
+
+## ¿Y qué significa `_dbl`?
+
+Eso también es nuevo.
+
+`purrr` tiene varias versiones.
+
+* `map()` devuelve una lista.
+* `map_dbl()` devuelve un vector numérico (*double*).
+* `map_chr()` devuelve caracteres.
+* `map_int()` devuelve enteros.
+
+Como `weighted.mean()` devuelve **un único número**, el profesor usa
+
+```r
+map2_dbl(...)
+```
+
+para obtener directamente un vector numérico.
+
+El resultado será algo parecido a
+
+```{text}
+0.43
+0.57
+0.61
+0.48
+0.52
+0.40
+0.66
+0.51
+```
+
+Un número por cada par de listas.
+
+---
+
+## Mi opinión didáctica
+
+Este código es un buen ejemplo de por qué antes insistí tanto con entender `map()`.
+
+Si uno ya sabe que:
+
+* `xs` es una lista.
+* `ws` es otra lista.
+* `weighted.mean(x,w)` recibe dos vectores.
+
+Entonces `map2_dbl(xs, ws, weighted.mean)` casi se lee solo.
+
+En cambio, si alguien presenta esto sin haber construido esas ideas antes, parece un hechizo.
+
+---
+
+### Te propongo un desafío
+
+Quiero ver si ya incorporaste el patrón.
+
+Sin ejecutarlo, ¿qué creés que haría este código?
+
+```{r}
+map2_dbl(xs, ws, cor)
+```
+
+No hace falta que recuerdes exactamente cómo funciona `cor()`. Solo decime **qué pares de objetos pensás que le estaría pasando la función**. Si respondés eso, ya entendiste la esencia de `map2()`.
+
+
+Exactamente. Ahí hiciste un cambio de lenguaje que es más correcto.
+
+Yo incluso diría "colecciones" antes que "vectores" cuando estamos hablando de `map()`, porque `map()` puede recorrer muchas estructuras distintas:
+
+* un vector
+* una lista
+* las columnas de un data frame
+* etc.
+
+```{text}
+**"`map2()` toma dos colecciones, las recorre en paralelo y, en cada iteración, le entrega un elemento de la primera y el elemento correspondiente de la segunda a la función que le pasemos."**
+
+```
+
+
+En este caso particular, como los elementos de `xs` y `ws` son **vectores**, la función `cor()` recibe dos vectores:
+
+```{r}
+cor(vector1, vector2)
+```
+
+y calcula la correlación entre ellos.
+
+---
+
+### Visualmente
+
+Imaginá que tenés:
+
+```{text}
+xs
+ ├── vector1
+ ├── vector2
+ ├── vector3
+ └── ...
+
+ws
+ ├── vector1
+ ├── vector2
+ ├── vector3
+ └── ...
+```
+
+Entonces `map2()` hace este emparejamiento:
+
+```{text}
+(vector1 de xs, vector1 de ws)
+                │
+              cor()
+
+(vector2 de xs, vector2 de ws)
+                │
+              cor()
+
+(vector3 de xs, vector3 de ws)
+                │
+              cor()
+```
+
+y así hasta el final.
+
+---
+
+## Hay una idea que me gustaría que te lleves
+
+Fijate que ya no estamos aprendiendo funciones de memoria.
+
+Estamos aprendiendo un **patrón**:
+
+* `map()` → una colección → una función.
+* `map2()` → dos colecciones → una función de dos argumentos.
+* `weighted.mean()` necesita dos vectores.
+* `cor()` también necesita dos vectores.
+
+Entonces el código prácticamente se lee solo.
+
+De hecho, creo que ya podrías interpretar este código sin que yo te diga nada:
+
+```{r}
+map2(xs, ws, cbind)
+```
+
+Porque sabés que `cbind()` recibe dos objetos y los une por columnas. Automáticamente pensarías:
+
+> "Va tomando un vector de `xs` y el vector correspondiente de `ws`, y construye una matriz con ambos como columnas."
+
+Ese es el nivel de comprensión que buscamos: no memorizar que existe `map2()`, sino reconocer el patrón y deducir el comportamiento incluso con funciones que no habías visto en ese contexto.
+
+¡Exactamente! **Ese era el punto que faltaba.**
+
+Creo que encontramos la confusión.
+
+Vos estabas imaginando algo así:
+
+```text
+xs
+[0.2, 0.4, 0.7, ...]
+
+ws
+[5, 3, 8, ...]
+```
+
+y pensabas que `map2()` iba tomando:
+
+* 0.2 con 5
+* 0.4 con 3
+* 0.7 con 8
+
+**Pero no.**
+
+Porque `xs` **no es un vector**. Es una **lista**.
+
+Y cada elemento de esa lista **es un vector**.
+
+Visualmente:
+
+```text
+xs
+│
+├── [[1]] → (0.12, 0.54, 0.87, ..., 10 números)
+├── [[2]] → (0.33, 0.71, 0.15, ..., 10 números)
+├── [[3]] → (0.84, 0.22, 0.90, ..., 10 números)
+...
+```
+
+Y `ws`:
+
+```text
+ws
+│
+├── [[1]] → (5, 7, 4, ..., 10 números)
+├── [[2]] → (3, 8, 6, ..., 10 números)
+├── [[3]] → (4, 5, 5, ..., 10 números)
+...
+```
+
+Entonces, en la primera iteración:
+
+```r
+cor(xs[[1]], ws[[1]])
+```
+
+Recibe dos vectores completos de longitud 10.
+
+No dos números.
+
+---
+
+## Te voy a dar una regla que creo que te va a servir muchísimo en R
+
+**Antes de entender una función, preguntate siempre:**
+
+> **¿Qué tipo de objeto tengo?**
+
+Por ejemplo:
+
+```r
+xs
+```
+
+La pregunta no es "¿qué hace `map2()`?"
+
+La primera pregunta es:
+
+> **¿Qué es `xs`?**
+
+Y la respuesta es:
+
+> Una lista.
+
+Después:
+
+> **¿Qué contiene esa lista?**
+
+Respuesta:
+
+> Vectores.
+
+Recién ahí preguntás:
+
+> ¿Qué hace `map2()`?
+
+Respuesta:
+
+> Recorre la lista elemento por elemento.
+
+Como cada elemento es un vector, la función recibe un vector.
+
+---
+
+De hecho, te voy a hacer una observación que creo que explica por qué ahora estás entendiendo mucho mejor el código del profesor.
+
+Al principio tendías a leer el código **como si fuera un texto**:
+
+> "Acá dice map... acá dice cor..."
+
+Ahora empezás a leerlo **como un programa**:
+
+1. ¿Qué objeto tengo?
+2. ¿Qué contiene?
+3. ¿Qué recibe la función?
+4. ¿Qué devuelve?
+
+Ese cambio de enfoque es exactamente el que hace que el código deje de parecer una sucesión de símbolos y empiece a tener una lógica interna. Y, en mi experiencia, ese suele ser el salto más importante cuando alguien aprende a programar.
+
+Me alegra que te haya convencido, porque creo que este enfoque encaja mejor con tu forma de aprender.
+
+Voy a proponerte una regla para este proyecto, que además nos va a servir cuando empiece Geocomputación:
+
+> **No avanzamos hasta que podamos nombrar el objeto con el que estamos trabajando.**
+
+Antes de explicar una función, siempre nos vamos a preguntar:
+
+1. **¿Qué objeto tengo?**
+
+   * Vector
+   * Matriz
+   * Data frame
+   * Lista
+   * Objeto `sf`
+   * Función
+
+2. **¿Qué contiene?**
+
+   * Números
+   * Caracteres
+   * Vectores
+   * Data frames
+   * Geometrías
+   * Otras listas
+
+3. **¿Qué espera recibir la función?**
+
+4. **¿Qué devuelve?**
+
+Fijate que con `map2_dbl(xs, ws, cor)` el problema nunca fue `cor()`. El problema era no tener claro qué eran `xs` y `ws`. Una vez que entendiste que eran listas cuyos elementos eran vectores, el resto cayó por su propio peso.
+
+Creo que esa va a ser la filosofía del taller de ahora en adelante. Incluso cuando aparezcan funciones muy compactas del profesor, no vamos a empezar por la sintaxis. Vamos a "desarmar" el código preguntándonos qué objetos entran y qué objetos salen.
+
+Y hay otra decisión que quiero mantener. Si noto que una explicación introduce tres conceptos nuevos a la vez, voy a frenarla. Hoy pasó con `map2()`: además de la función aparecían listas, vectores, `weighted.mean()` y `_dbl`. Era demasiado para incorporar de una sola vez. Prefiero avanzar un poco más despacio, pero que cada concepto quede sólido.
+
+Eso, a largo plazo, suele ser más eficiente que memorizar ejemplos. De hecho, la conversación de hoy ya dejó un concepto importante instalado: **en R muchas veces el desafío no es entender una función, sino entender la estructura del objeto sobre el que esa función está trabajando.** Esa idea te va a servir una y otra vez, especialmente cuando empieces a manipular objetos espaciales `sf` más complejos.
