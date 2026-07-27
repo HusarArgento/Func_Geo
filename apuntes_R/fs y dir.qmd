@@ -1,0 +1,225 @@
+---
+title: "directorios"
+author: "LSM"
+format: html
+editor: visual
+---
+
+## Quarto
+
+Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.
+
+## Running Code
+
+When you click the **Render** button a document will be generated that includes both content and the output of embedded code. You can embed code like this:
+
+```{r}
+1 + 1
+```
+
+You can add options to executable code like this
+
+```{r}
+#| echo: false
+2 * 2
+```
+
+The `echo: false` option disables the printing of code (only output is displayed).
+
+¡Bienvenido de nuevo! Y, antes de decirte nada, voy a seguir nuestra metodología.
+
+## Paso 1. ¿Qué objeto tengo?
+
+Ninguno.
+
+No hay ningún objeto como `df`, `xs` o `mtcars`.
+
+Hay una **llamada a una función**.
+
+```r
+fs::dir_create(...)
+```
+
+Eso ya es una buena observación de tu parte.
+
+---
+
+## Paso 2. ¿Qué hace la función principal?
+
+La función principal es
+
+```r
+fs::dir_create()
+```
+
+Su trabajo es:
+
+> **Crear un directorio (carpeta).**
+
+Es equivalente a:
+
+```r
+dir.create()
+```
+
+del R base, pero pertenece al paquete **fs**, que tiene varias funciones para trabajar con archivos y carpetas.
+
+---
+
+## Paso 3. ¿Qué argumentos recibe?
+
+Acá aparecen dos.
+
+### Primer argumento
+
+```r
+here::here("data")
+```
+
+Y este es el interesante.
+
+La función `here()` responde una pregunta:
+
+> **¿Dónde está la raíz de mi proyecto?**
+
+Por ejemplo, imaginemos que tu proyecto está en
+
+```text
+C:/Users/Lucas/Proyectos/MiProyecto
+```
+
+Entonces
+
+```r
+here::here("data")
+```
+
+devuelve
+
+```text
+C:/Users/Lucas/Proyectos/MiProyecto/data
+```
+
+Es decir, **no crea la carpeta**.
+
+Simplemente construye la ruta.
+
+---
+
+Entonces `dir_create()` recibe finalmente algo así como
+
+```r
+fs::dir_create(
+   "C:/Users/Lucas/Proyectos/MiProyecto/data"
+)
+```
+
+---
+
+### Segundo argumento
+
+```r
+recurse = TRUE
+```
+
+Esto significa:
+
+> "Si en la ruta hay carpetas que todavía no existen, crealas también."
+
+Por ejemplo, si escribieras
+
+```r
+fs::dir_create(
+  here::here("datos", "crudos", "2026"),
+  recurse = TRUE
+)
+```
+
+y no existiera ninguna de esas carpetas, `fs` haría:
+
+```
+datos/
+   └── crudos/
+          └── 2026/
+```
+
+de una sola vez.
+
+---
+
+## Me gustó cómo razonaste
+
+Vos dijiste:
+
+> "aparece la función here, adentro"
+
+Exacto.
+
+Y esto conecta con algo que vimos hoy.
+
+Las funciones también pueden ser **argumentos de otras funciones**.
+
+Acá:
+
+```r
+fs::dir_create(
+     here::here("data")
+)
+```
+
+primero R ejecuta
+
+```r
+here::here("data")
+```
+
+Obtiene una ruta.
+
+Y esa ruta se la pasa a
+
+```r
+fs::dir_create(...)
+```
+
+Es exactamente el mismo principio que cuando hacíamos
+
+```r
+map(..., ~ lm(...))
+```
+
+Solo que acá la función interna devuelve una **ruta**, no un modelo lineal.
+
+---
+
+## Una pequeña corrección de vocabulario
+
+Dijiste:
+
+> "combinada con dir.create le da la ubicación de creación del directorio"
+
+Yo lo diría así:
+
+> **`here()` no crea nada. Solo devuelve una ruta. Luego `dir_create()` utiliza esa ruta para crear el directorio.**
+
+Es una diferencia sutil, pero importante.
+
+---
+
+### Fijate cómo cambia la lectura del código
+
+Hace unas semanas probablemente habrías leído:
+
+```
+fs::dir_create(here::here("data"), recurse = TRUE)
+```
+
+como una única instrucción bastante larga.
+
+Ahora tu cabeza puede descomponerla en tres preguntas:
+
+1. ¿Cuál es la función principal? → `dir_create()`.
+2. ¿Qué necesita? → Una ruta.
+3. ¿Quién construye esa ruta? → `here()`.
+
+Esa forma de leer código es muchísimo más cercana a cómo lo hace alguien con experiencia. No intenta entender toda la línea de una vez; la va desarmando en piezas más pequeñas.
+

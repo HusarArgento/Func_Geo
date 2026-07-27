@@ -1117,7 +1117,7 @@ Creo que encontramos la confusión.
 
 Vos estabas imaginando algo así:
 
-```text
+```{text}
 xs
 [0.2, 0.4, 0.7, ...]
 
@@ -1139,7 +1139,7 @@ Y cada elemento de esa lista **es un vector**.
 
 Visualmente:
 
-```text
+```{text}
 xs
 │
 ├── [[1]] → (0.12, 0.54, 0.87, ..., 10 números)
@@ -1150,7 +1150,7 @@ xs
 
 Y `ws`:
 
-```text
+```{text}
 ws
 │
 ├── [[1]] → (5, 7, 4, ..., 10 números)
@@ -1161,7 +1161,7 @@ ws
 
 Entonces, en la primera iteración:
 
-```r
+```{r}
 cor(xs[[1]], ws[[1]])
 ```
 
@@ -1179,7 +1179,7 @@ No dos números.
 
 Por ejemplo:
 
-```r
+```{r}
 xs
 ```
 
@@ -1227,12 +1227,6 @@ Ahora empezás a leerlo **como un programa**:
 4. ¿Qué devuelve?
 
 Ese cambio de enfoque es exactamente el que hace que el código deje de parecer una sucesión de símbolos y empiece a tener una lógica interna. Y, en mi experiencia, ese suele ser el salto más importante cuando alguien aprende a programar.
-
-Me alegra que te haya convencido, porque creo que este enfoque encaja mejor con tu forma de aprender.
-
-Voy a proponerte una regla para este proyecto, que además nos va a servir cuando empiece Geocomputación:
-
-> **No avanzamos hasta que podamos nombrar el objeto con el que estamos trabajando.**
 
 Antes de explicar una función, siempre nos vamos a preguntar:
 
