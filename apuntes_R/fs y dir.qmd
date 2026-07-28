@@ -17,14 +17,6 @@ When you click the **Render** button a document will be generated that includes 
 1 + 1
 ```
 
-You can add options to executable code like this
-
-```{r}
-#| echo: false
-2 * 2
-```
-
-The `echo: false` option disables the printing of code (only output is displayed).
 
 ¡Bienvenido de nuevo! Y, antes de decirte nada, voy a seguir nuestra metodología.
 
@@ -36,20 +28,21 @@ No hay ningún objeto como `df`, `xs` o `mtcars`.
 
 Hay una **llamada a una función**.
 
-```r
+```{r}
 fs::dir_create(...)
+
 ```
 
 Eso ya es una buena observación de tu parte.
 
 ---
-
 ## Paso 2. ¿Qué hace la función principal?
 
 La función principal es
 
-```r
+```{r}
 fs::dir_create()
+
 ```
 
 Su trabajo es:
@@ -58,8 +51,9 @@ Su trabajo es:
 
 Es equivalente a:
 
-```r
+```{r}
 dir.create()
+
 ```
 
 del R base, pero pertenece al paquete **fs**, que tiene varias funciones para trabajar con archivos y carpetas.
@@ -72,11 +66,10 @@ Acá aparecen dos.
 
 ### Primer argumento
 
-```r
+```{r}
 here::here("data")
-```
 
-Y este es el interesante.
+```
 
 La función `here()` responde una pregunta:
 
@@ -84,20 +77,22 @@ La función `here()` responde una pregunta:
 
 Por ejemplo, imaginemos que tu proyecto está en
 
-```text
+```{text}
 C:/Users/Lucas/Proyectos/MiProyecto
 ```
 
 Entonces
 
-```r
+```{r}
 here::here("data")
+
 ```
 
 devuelve
 
-```text
+```{text}
 C:/Users/Lucas/Proyectos/MiProyecto/data
+
 ```
 
 Es decir, **no crea la carpeta**.
@@ -108,7 +103,7 @@ Simplemente construye la ruta.
 
 Entonces `dir_create()` recibe finalmente algo así como
 
-```r
+```{r}
 fs::dir_create(
    "C:/Users/Lucas/Proyectos/MiProyecto/data"
 )
@@ -118,7 +113,7 @@ fs::dir_create(
 
 ### Segundo argumento
 
-```r
+```{r}
 recurse = TRUE
 ```
 
@@ -128,7 +123,7 @@ Esto significa:
 
 Por ejemplo, si escribieras
 
-```r
+```{r}
 fs::dir_create(
   here::here("datos", "crudos", "2026"),
   recurse = TRUE
@@ -137,7 +132,7 @@ fs::dir_create(
 
 y no existiera ninguna de esas carpetas, `fs` haría:
 
-```
+```{text}
 datos/
    └── crudos/
           └── 2026/
@@ -145,23 +140,11 @@ datos/
 
 de una sola vez.
 
----
-
-## Me gustó cómo razonaste
-
-Vos dijiste:
-
-> "aparece la función here, adentro"
-
-Exacto.
-
-Y esto conecta con algo que vimos hoy.
-
 Las funciones también pueden ser **argumentos de otras funciones**.
 
 Acá:
 
-```r
+```{r}
 fs::dir_create(
      here::here("data")
 )
@@ -169,7 +152,7 @@ fs::dir_create(
 
 primero R ejecuta
 
-```r
+```{r}
 here::here("data")
 ```
 
@@ -177,13 +160,13 @@ Obtiene una ruta.
 
 Y esa ruta se la pasa a
 
-```r
+```{r}
 fs::dir_create(...)
 ```
 
 Es exactamente el mismo principio que cuando hacíamos
 
-```r
+```{r}
 map(..., ~ lm(...))
 ```
 
@@ -209,7 +192,7 @@ Es una diferencia sutil, pero importante.
 
 Hace unas semanas probablemente habrías leído:
 
-```
+```{r}
 fs::dir_create(here::here("data"), recurse = TRUE)
 ```
 

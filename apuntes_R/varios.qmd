@@ -1,0 +1,252 @@
+---
+title: "varios"
+author: "LSM"
+format: html
+editor: visual
+---
+
+## Quarto
+
+Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.
+
+## Running Code
+
+When you click the **Render** button a document will be generated that includes both content and the output of embedded code. You can embed code like this:
+
+```{r}
+1 + 1
+```
+
+You can add options to executable code like this
+
+```{r}
+#| echo: false
+2 * 2
+```
+
+The `echo: false` option disables the printing of code (only output is displayed).
+
+Muy buena pregunta. Y además es una de esas cosas que **sí tiene mucho sentido entender conceptualmente**, porque después vas a usar `join()` todo el tiempo.
+
+Primero leamos el código.
+
+``` r
+db |>
+  select(-sexo) |>
+  left_join(db1, by = c("id", "edad"))
+```
+
+### Paso 1
+
+``` r
+select(-sexo)
+```
+
+Le saca la columna `sexo` a `db`.
+
+Hasta ahí no hay misterio.
+
+------------------------------------------------------------------------
+
+### Paso 2
+
+Después hace
+
+``` r
+left_join(db1, by = c("id", "edad"))
+```
+
+Y acá viene tu pregunta.
+
+## ¿Qué significa una llave?
+
+La llave es el criterio que usa R para decir:
+
+> **"Esta fila de `db` corresponde con esta fila de `db1`."**
+
+Si hacés
+
+``` r
+left_join(db1, by = "id")
+```
+
+R busca únicamente que coincida el `id`.
+
+Por ejemplo
+
+**db**
+
+|  id | edad |
+|----:|-----:|
+|   1 |   20 |
+|   2 |   30 |
+|   3 |   40 |
+
+**db1**
+
+|  id | ciudad   |
+|----:|----------|
+|   1 | La Plata |
+|   2 | Rosario  |
+|   3 | Córdoba  |
+
+No hay dudas.
+
+------------------------------------------------------------------------
+
+## ¿Qué pasa con dos llaves?
+
+Ahora imaginemos esto.
+
+**db**
+
+|  id | edad |
+|----:|-----:|
+|   1 |   20 |
+|   1 |   21 |
+|   2 |   30 |
+
+**db1**
+
+|  id | edad | ciudad        |
+|----:|-----:|---------------|
+|   1 |   20 | La Plata      |
+|   1 |   21 | Mar del Plata |
+|   2 |   30 | Rosario       |
+
+Si hicieras
+
+``` r
+by = "id"
+```
+
+R encontraría dos filas con `id = 1`.
+
+¿Con cuál se queda?
+
+No lo sabe.
+
+Obtendrías una relación muchos-a-muchos (o duplicaciones, según el caso).
+
+------------------------------------------------------------------------
+
+En cambio, con
+
+``` r
+by = c("id", "edad")
+```
+
+R dice:
+
+> Solo son la misma observación si coinciden **las dos columnas**.
+
+Entonces:
+
+``` text
+id = 1
+edad = 20
+```
+
+se une únicamente con
+
+``` text
+id = 1
+edad = 20
+```
+
+y no con
+
+``` text
+id = 1
+edad = 21
+```
+
+------------------------------------------------------------------------
+
+## Una analogía
+
+Imaginá una universidad.
+
+Hay dos alumnos llamados Juan Pérez.
+
+Si buscás solamente por:
+
+``` text
+Nombre
+```
+
+tenés un problema.
+
+Pero si buscás por
+
+``` text
+Nombre
++
+DNI
+```
+
+ya identificás a una sola persona.
+
+Cada columna adicional hace más específica la búsqueda.
+
+------------------------------------------------------------------------
+
+## En bases de datos
+
+Esto es muy habitual.
+
+Hay tablas donde ninguna columna identifica sola a una fila.
+
+Por ejemplo:
+
+| provincia | departamento | población |
+|-----------|--------------|-----------|
+
+El nombre del departamento puede repetirse en distintas provincias.
+
+Entonces la llave natural sería:
+
+``` r
+by = c("provincia", "departamento")
+```
+
+porque juntas identifican una observación única.
+
+------------------------------------------------------------------------
+
+## Te hago una pregunta
+
+¿Recordás cuando hablábamos de **llaves primarias** en bases de datos?
+
+Esto está muy relacionado.
+
+Una llave primaria puede ser:
+
+- una sola columna (`id`), o
+- una **llave compuesta**, formada por varias columnas (`id` + `edad`, o `provincia` + `departamento`).
+
+`left_join()` simplemente utiliza esa llave para saber qué filas corresponden entre ambas tablas.
+
+------------------------------------------------------------------------
+
+## Una observación
+
+Acá hay un patrón que se repite en muchas funciones de `tidyr`:
+
+- 
+
+-  **`id_cols`** → quién identifica las filas.
+
+- 
+
+-  **`names_from`** → quién genera los nombres de las nuevas columnas.
+
+- 
+
+-  **`values_from`** → de qué columna salen los datos que van dentro de esas nuevas columnas.
+
+- 
+
+-  **`values_fill`** → qué hacer si alguna celda queda vacía.
+
+- 

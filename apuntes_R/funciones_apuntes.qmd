@@ -853,7 +853,7 @@ ws
 [[8]]
 ```
 
----
+------------------------------------------------------------------------
 
 ## Paso 2. ¿Qué hace `map2()`?
 
@@ -887,7 +887,7 @@ xs[[8]]  con  ws[[8]]
 
 Las va emparejando.
 
----
+------------------------------------------------------------------------
 
 ## Paso 3. ¿Qué es `weighted.mean`?
 
@@ -897,15 +897,11 @@ Es la **media ponderada**.
 
 En lugar de calcular
 
-[
-\frac{x_1+x_2+\cdots+x_n}{n}
-]
+\[ \frac{x_1+x_2+\cdots+x_n}{n}\]
 
 calcula
 
-[
-\frac{\sum x_i w_i}{\sum w_i}
-]
+\[ \frac{\sum x_i w_i}{\sum w_i}\]
 
 donde `w` son pesos.
 
@@ -917,10 +913,10 @@ weighted.mean(x, w)
 
 recibe
 
-* un vector de datos
-* un vector de pesos
+- un vector de datos
+- un vector de pesos
 
----
+------------------------------------------------------------------------
 
 ## Entonces...
 
@@ -956,7 +952,7 @@ Octava
 weighted.mean(xs[[8]], ws[[8]])
 ```
 
----
+------------------------------------------------------------------------
 
 ## ¿Y qué significa `_dbl`?
 
@@ -964,14 +960,14 @@ Eso también es nuevo.
 
 `purrr` tiene varias versiones.
 
-* `map()` devuelve una lista.
-* `map_dbl()` devuelve un vector numérico (*double*).
-* `map_chr()` devuelve caracteres.
-* `map_int()` devuelve enteros.
+- `map()` devuelve una lista.
+- `map_dbl()` devuelve un vector numérico (*double*).
+- `map_chr()` devuelve caracteres.
+- `map_int()` devuelve enteros.
 
 Como `weighted.mean()` devuelve **un único número**, el profesor usa
 
-```r
+``` r
 map2_dbl(...)
 ```
 
@@ -992,7 +988,7 @@ El resultado será algo parecido a
 
 Un número por cada par de listas.
 
----
+------------------------------------------------------------------------
 
 ## Mi opinión didáctica
 
@@ -1000,15 +996,15 @@ Este código es un buen ejemplo de por qué antes insistí tanto con entender `m
 
 Si uno ya sabe que:
 
-* `xs` es una lista.
-* `ws` es otra lista.
-* `weighted.mean(x,w)` recibe dos vectores.
+- `xs` es una lista.
+- `ws` es otra lista.
+- `weighted.mean(x,w)` recibe dos vectores.
 
 Entonces `map2_dbl(xs, ws, weighted.mean)` casi se lee solo.
 
 En cambio, si alguien presenta esto sin haber construido esas ideas antes, parece un hechizo.
 
----
+------------------------------------------------------------------------
 
 ### Te propongo un desafío
 
@@ -1022,21 +1018,19 @@ map2_dbl(xs, ws, cor)
 
 No hace falta que recuerdes exactamente cómo funciona `cor()`. Solo decime **qué pares de objetos pensás que le estaría pasando la función**. Si respondés eso, ya entendiste la esencia de `map2()`.
 
-
 Exactamente. Ahí hiciste un cambio de lenguaje que es más correcto.
 
 Yo incluso diría "colecciones" antes que "vectores" cuando estamos hablando de `map()`, porque `map()` puede recorrer muchas estructuras distintas:
 
-* un vector
-* una lista
-* las columnas de un data frame
-* etc.
+- un vector
+- una lista
+- las columnas de un data frame
+- etc.
 
 ```{text}
 **"`map2()` toma dos colecciones, las recorre en paralelo y, en cada iteración, le entrega un elemento de la primera y el elemento correspondiente de la segunda a la función que le pasemos."**
 
 ```
-
 
 En este caso particular, como los elementos de `xs` y `ws` son **vectores**, la función `cor()` recibe dos vectores:
 
@@ -1046,7 +1040,7 @@ cor(vector1, vector2)
 
 y calcula la correlación entre ellos.
 
----
+------------------------------------------------------------------------
 
 ### Visualmente
 
@@ -1084,7 +1078,7 @@ Entonces `map2()` hace este emparejamiento:
 
 y así hasta el final.
 
----
+------------------------------------------------------------------------
 
 ## Hay una idea que me gustaría que te lleves
 
@@ -1092,10 +1086,10 @@ Fijate que ya no estamos aprendiendo funciones de memoria.
 
 Estamos aprendiendo un **patrón**:
 
-* `map()` → una colección → una función.
-* `map2()` → dos colecciones → una función de dos argumentos.
-* `weighted.mean()` necesita dos vectores.
-* `cor()` también necesita dos vectores.
+- `map()` → una colección → una función.
+- `map2()` → dos colecciones → una función de dos argumentos.
+- `weighted.mean()` necesita dos vectores.
+- `cor()` también necesita dos vectores.
 
 Entonces el código prácticamente se lee solo.
 
@@ -1127,9 +1121,9 @@ ws
 
 y pensabas que `map2()` iba tomando:
 
-* 0.2 con 5
-* 0.4 con 3
-* 0.7 con 8
+- 0.2 con 5
+- 0.4 con 3
+- 0.7 con 8
 
 **Pero no.**
 
@@ -1169,7 +1163,7 @@ Recibe dos vectores completos de longitud 10.
 
 No dos números.
 
----
+------------------------------------------------------------------------
 
 ## Te voy a dar una regla que creo que te va a servir muchísimo en R
 
@@ -1211,7 +1205,7 @@ Respuesta:
 
 Como cada elemento es un vector, la función recibe un vector.
 
----
+------------------------------------------------------------------------
 
 De hecho, te voy a hacer una observación que creo que explica por qué ahora estás entendiendo mucho mejor el código del profesor.
 
@@ -1221,36 +1215,36 @@ Al principio tendías a leer el código **como si fuera un texto**:
 
 Ahora empezás a leerlo **como un programa**:
 
-1. ¿Qué objeto tengo?
-2. ¿Qué contiene?
-3. ¿Qué recibe la función?
-4. ¿Qué devuelve?
+1.  ¿Qué objeto tengo?
+2.  ¿Qué contiene?
+3.  ¿Qué recibe la función?
+4.  ¿Qué devuelve?
 
 Ese cambio de enfoque es exactamente el que hace que el código deje de parecer una sucesión de símbolos y empiece a tener una lógica interna. Y, en mi experiencia, ese suele ser el salto más importante cuando alguien aprende a programar.
 
 Antes de explicar una función, siempre nos vamos a preguntar:
 
-1. **¿Qué objeto tengo?**
+1.  **¿Qué objeto tengo?**
 
-   * Vector
-   * Matriz
-   * Data frame
-   * Lista
-   * Objeto `sf`
-   * Función
+    - Vector
+    - Matriz
+    - Data frame
+    - Lista
+    - Objeto `sf`
+    - Función
 
-2. **¿Qué contiene?**
+2.  **¿Qué contiene?**
 
-   * Números
-   * Caracteres
-   * Vectores
-   * Data frames
-   * Geometrías
-   * Otras listas
+    - Números
+    - Caracteres
+    - Vectores
+    - Data frames
+    - Geometrías
+    - Otras listas
 
-3. **¿Qué espera recibir la función?**
+3.  **¿Qué espera recibir la función?**
 
-4. **¿Qué devuelve?**
+4.  **¿Qué devuelve?**
 
 Fijate que con `map2_dbl(xs, ws, cor)` el problema nunca fue `cor()`. El problema era no tener claro qué eran `xs` y `ws`. Una vez que entendiste que eran listas cuyos elementos eran vectores, el resto cayó por su propio peso.
 
@@ -1259,3 +1253,283 @@ Creo que esa va a ser la filosofía del taller de ahora en adelante. Incluso cua
 Y hay otra decisión que quiero mantener. Si noto que una explicación introduce tres conceptos nuevos a la vez, voy a frenarla. Hoy pasó con `map2()`: además de la función aparecían listas, vectores, `weighted.mean()` y `_dbl`. Era demasiado para incorporar de una sola vez. Prefiero avanzar un poco más despacio, pero que cada concepto quede sólido.
 
 Eso, a largo plazo, suele ser más eficiente que memorizar ejemplos. De hecho, la conversación de hoy ya dejó un concepto importante instalado: **en R muchas veces el desafío no es entender una función, sino entender la estructura del objeto sobre el que esa función está trabajando.** Esa idea te va a servir una y otra vez, especialmente cuando empieces a manipular objetos espaciales `sf` más complejos.
+
+
+Esa es una excelente pregunta. De hecho, creo que es una de las preguntas fundamentales para aprender a leer código.
+
+La respuesta corta es:
+
+> **Sí. Cuando una función aparece como argumento de otra, R primero evalúa la función interna.**
+
+Pero vamos a ponerle un poco de orden.
+
+---
+
+# Caso 1. Lectura lineal
+
+Por ejemplo:
+
+```r
+x <- 10
+y <- x + 5
+```
+
+Acá la lectura es prácticamente lineal.
+
+1. Crear `x`.
+2. Crear `y`.
+
+No hay funciones anidadas.
+
+---
+
+# Caso 2. Funciones anidadas
+
+```r
+sqrt(abs(-9))
+```
+
+Acá **no puede** calcular `sqrt()` primero.
+
+¿Por qué?
+
+Porque `sqrt()` necesita un número.
+
+Entonces hace:
+
+1.
+
+```r
+abs(-9)
+```
+
+↓
+
+devuelve
+
+```r
+9
+```
+
+2.
+
+```r
+sqrt(9)
+```
+
+↓
+
+devuelve
+
+```r
+3
+```
+
+Es decir:
+
+```text
+sqrt(
+      abs(-9)
+     )
+```
+
+se lee desde el centro hacia afuera.
+
+---
+
+# Tu ejemplo
+
+```r
+fs::dir_create(
+      here::here("data"),
+      recurse = TRUE
+)
+```
+
+R piensa:
+
+Primero:
+
+```r
+here::here("data")
+```
+
+↓
+
+obtiene
+
+```text
+"C:/MiProyecto/data"
+```
+
+Después:
+
+```r
+fs::dir_create(
+   "C:/MiProyecto/data",
+   recurse = TRUE
+)
+```
+
+---
+
+# Otro ejemplo que ya vimos
+
+```r
+map(
+    xs,
+    ~ lm(mpg ~ wt, data = .x)
+)
+```
+
+Acá pasa algo parecido.
+
+Para cada elemento de `xs`, `map()` ejecuta:
+
+```r
+lm(mpg ~ wt, data = .x)
+```
+
+O sea, la función que recibe como argumento.
+
+---
+
+# ¿Siempre se lee de adentro hacia afuera?
+
+No.
+
+Y acá está la parte interesante.
+
+Mirá esto:
+
+```r
+mtcars |>
+  split(mtcars$cyl) |>
+  map(~ lm(mpg ~ wt, data = .x))
+```
+
+Acá la lectura es distinta.
+
+Porque el operador `|>` dice:
+
+> "Tomá el resultado de la izquierda y pasáselo a la función de la derecha."
+
+Entonces yo lo leería así:
+
+```text
+mtcars
+   │
+   ▼
+split()
+   │
+   ▼
+map()
+```
+
+O sea, de izquierda a derecha.
+
+---
+
+# Entonces tenemos dos reglas
+
+## Regla 1
+
+**Cuando una función está dentro de otra**, primero se evalúa la interna.
+
+```r
+f(g(x))
+```
+
+↓
+
+primero
+
+```r
+g(x)
+```
+
+↓
+
+después
+
+```r
+f(...)
+```
+
+---
+
+## Regla 2
+
+**Cuando hay un pipe (`|>`), la lectura suele ser de izquierda a derecha.**
+
+```r
+datos |>
+  filtro() |>
+  resumen()
+```
+
+Primero los datos.
+
+Después el filtro.
+
+Después el resumen.
+
+---
+
+# Y cuando se mezclan...
+
+Aparece algo como esto:
+
+```r
+mtcars |>
+  split(cyl) |>
+  map(~ lm(mpg ~ wt, data = .x))
+```
+
+Entonces yo hago dos lecturas simultáneas.
+
+### Horizontal
+
+```text
+mtcars
+   │
+split()
+   │
+map()
+```
+
+### Vertical
+
+Dentro de `map()` aparece
+
+```r
+lm(...)
+```
+
+que recién se ejecuta cuando `map()` la llama.
+
+---
+
+## Un consejo práctico
+
+Cuando veas una línea complicada, preguntate:
+
+1. **¿Cuál es la función principal?**
+2. **¿Hay funciones dentro de los argumentos?**
+3. **¿Hay un pipe?**
+
+Con esas tres preguntas casi siempre podés decidir cómo leerla.
+
+---
+
+Y te voy a decir algo que me hizo sonreír porque muestra un cambio en tu manera de pensar.
+
+Hace unos días tus preguntas eran:
+
+> "¿Qué hace `map2()`?"
+
+Hoy tu pregunta fue:
+
+> **"¿Cómo se lee un programa?"**
+
+
