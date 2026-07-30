@@ -1,0 +1,46 @@
+---
+title: "practicas_codigo"
+author: "LSM"
+format: html
+editor: visual
+---
+
+## Quarto
+
+Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.
+
+## Running Code
+
+When you click the **Render** button a document will be generated that includes both content and the output of embedded code. You can embed code like this:
+
+```{r}
+1 + 1
+```
+
+You can add options to executable code like this
+
+```{r}
+#| echo: false
+2 * 2
+```
+
+The `echo: false` option disables the printing of code (only output is displayed).
+
+Ejercicio 1 - El paso previo a across()
+
+```{r}
+
+alumnos <- data.frame(
+  nombre = c("Ana", "Luis", "Juan"),
+  matematica = c(8, 6, 9),
+  historia = c(7, 8, 5),
+  geografia = c(9, 7, 10)
+)
+
+```
+
+```{r}
+alumnos |> 
+  mutate()
+```
+

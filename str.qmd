@@ -1,0 +1,363 @@
+---
+title: "str"
+author: "LSM"
+format: html
+editor: visual
+---
+
+## Quarto
+
+Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.
+
+## Running Code
+
+When you click the **Render** button a document will be generated that includes both content and the output of embedded code. You can embed code like this:
+
+```{r}
+1 + 1
+```
+
+You can add options to executable code like this
+
+```{r}
+#| echo: false
+2 * 2
+```
+
+Este es un ejemplo muy típico de limpieza de datos antes de hacer un `join`. Vamos paso por paso.
+
+## Primera línea
+
+```         
+depart <- mutate(depart,                  POB_ADU_PRI = POB_ADU - POB_ADU_CONSEC) 
+```
+
+Esta ya la entendés.
+
+Crea una nueva columna:
+
+```         
+POB_ADU_PRI 
+```
+
+que es la diferencia entre
+
+```         
+POB_ADU - POB_ADU_CONSEC 
+```
+
+## Después lee un archivo
+
+```         
+regiones <- read_csv(...) 
+```
+
+Simplemente carga un CSV con información de las regiones.
+
+## Ahora viene lo interesante
+
+```         
+depart <- depart |>   mutate(     PROV = str_pad(PROV, 2, pad = "0"),     DEP = str_pad(DEP, 5, pad = "0")   ) |>   left_join(regiones, by = "PROV") 
+```
+
+La función nueva es
+
+```         
+str_pad() 
+```
+
+Pertenece al paquete **stringr** y significa literalmente:
+
+> **"Rellenar una cadena de texto hasta alcanzar una determinada longitud."**
+
+## Ejemplo sencillo
+
+Supongamos que tenés
+
+```         
+"7" 
+```
+
+y hacés
+
+```         
+str_pad("7", 2, pad = "0") 
+```
+
+El resultado es
+
+```         
+"07" 
+```
+
+Otro ejemplo
+
+```         
+str_pad("15", 5, pad = "0") 
+```
+
+devuelve
+
+```         
+"00015" 
+```
+
+## ¿Qué significan los argumentos?
+
+```         
+str_pad(PROV, 2, pad = "0") 
+```
+
+- `PROV` → la columna.
+
+- `2` → longitud final deseada.
+
+- `pad = "0"` → rellenar con ceros.
+
+## ¿Por qué hace esto?
+
+Pensá en códigos oficiales.
+
+Supongamos que Buenos Aires tiene código
+
+```         
+2 
+```
+
+y Córdoba
+
+```         
+14 
+```
+
+En algunos archivos aparecen así:
+
+| PROV |
+|------|
+| 2    |
+| 14   |
+
+Y en otros aparecen así:
+
+| PROV |
+|------|
+| 02   |
+| 14   |
+
+Para una persona son lo mismo.
+
+Para R:
+
+```         
+"2" 
+```
+
+y
+
+```         
+"02" 
+```
+
+son distintos.
+
+Entonces el `join` falla.
+
+Por eso primero hace
+
+```         
+PROV = str_pad(PROV, 2, pad = "0") 
+```
+
+y transforma
+
+| Antes | Después |
+|-------|---------|
+| 2     | 02      |
+| 6     | 06      |
+| 14    | 14      |
+
+Todos quedan con dos caracteres.
+
+Lo mismo con
+
+```         
+DEP = str_pad(DEP, 5, pad = "0") 
+```
+
+Si un departamento tiene código
+
+```         
+123 
+```
+
+queda
+
+```         
+00123 
+```
+
+## ¿Y después?
+
+Ahora sí puede hacer
+
+```         
+left_join(regiones, by = "PROV") 
+```
+
+porque las claves tienen exactamente el mismo formato.
+
+## Una analogía
+
+Imaginate dos padrones.
+
+En uno el DNI aparece
+
+```         
+12345 
+```
+
+y en otro
+
+```         
+00012345 
+```
+
+Si el sistema compara texto con texto, dirá que **no coinciden**.
+
+Primero hay que normalizar el formato.
+
+Eso es exactamente lo que hace `str_pad()`.
+
+## Un detalle interesante
+
+Notá que **no está cambiando el valor del código**.
+
+El código de provincia sigue siendo el mismo.
+
+Está cambiando **la representación**.
+
+Es una diferencia importante:
+
+- Valor:
+
+```         
+2 
+```
+
+- Representación:
+
+```         
+02 
+```
+
+En geografía y bases de datos esto pasa muchísimo. Los códigos geográficos (como los de provincias, departamentos o radios censales) suelen venir con una longitud fija y ceros a la izquierda. Es una buena práctica mantener ese formato antes de hacer un `join`, porque evita errores difíciles de detectar.
+
+Sí, muchísimo. De hecho, te diría que es una de esas funciones "pequeñas" que parecen triviales, pero que en proyectos reales evitan horas de frustración.
+
+Te cuento una experiencia bastante común.
+
+Supongamos que tenés dos bases.
+
+**Base A**
+
+| PROV |
+|------|
+| 01   |
+| 02   |
+| 03   |
+
+**Base B**
+
+| PROV |
+|------|
+| 1    |
+| 2    |
+| 3    |
+
+Visualmente uno piensa:
+
+> "Son iguales."
+
+Pero R ve esto:
+
+```         
+"01" != "1" 
+```
+
+Entonces hacés:
+
+```         
+left_join(...) 
+```
+
+Y obtenés algo así:
+
+| PROV | REGION |
+|------|--------|
+| 01   | NA     |
+| 02   | NA     |
+| 03   | NA     |
+
+Y empezás a pensar:
+
+> "¿Qué pasó? ¡Si las provincias existen!"
+
+En realidad el problema no es el `join`. El problema es que **las claves están codificadas de forma distinta**.
+
+## Esto pasa muchísimo en datos espaciales
+
+Te adelanto algo que vas a ver una y otra vez.
+
+Los códigos suelen venir con longitud fija.
+
+Por ejemplo:
+
+- Provincias → 2 dígitos
+
+- Departamentos → 5 dígitos
+
+- Radios censales → 12 o más dígitos
+
+- Parcelas catastrales → longitud fija según la provincia
+
+Entonces vas a encontrarte cosas como:
+
+```         
+02 02001 02001000123 
+```
+
+Si perdés los ceros iniciales, el código deja de coincidir con otras bases.
+
+## Por eso creo que esta línea
+
+```         
+PROV = str_pad(PROV, 2, pad = "0") 
+```
+
+es mucho más importante de lo que parece.
+
+No está "embelleciendo" el dato.
+
+Está **estandarizando una clave**.
+
+Y las claves son el corazón de cualquier unión (`join`).
+
+## Te voy a dar una regla práctica
+
+Cada vez que vayas a hacer un `join`, hacete estas cuatro preguntas:
+
+1.  ¿Las columnas tienen el mismo nombre?
+
+2.  ¿Tienen el mismo tipo? (`character`, `numeric`, etc.)
+
+3.  ¿Tienen el mismo formato? (ceros a la izquierda, mayúsculas, espacios...)
+
+4.  ¿Identifican realmente la misma entidad?
+
+Si respondés "sí" a las cuatro, el `join` casi siempre funciona.
+
+Y una observación sobre tu aprendizaje.
+
+Hoy hiciste una asociación muy buena. No dijiste simplemente:
+
+> 

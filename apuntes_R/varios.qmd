@@ -30,16 +30,18 @@ Muy buena pregunta. Y además es una de esas cosas que **sí tiene mucho sentido
 
 Primero leamos el código.
 
-``` r
+```{r}
 db |>
   select(-sexo) |>
   left_join(db1, by = c("id", "edad"))
+
 ```
 
 ### Paso 1
 
-``` r
+```{r}
 select(-sexo)
+
 ```
 
 Le saca la columna `sexo` a `db`.
@@ -52,7 +54,7 @@ Hasta ahí no hay misterio.
 
 Después hace
 
-``` r
+```{r}
 left_join(db1, by = c("id", "edad"))
 ```
 
@@ -66,8 +68,9 @@ La llave es el criterio que usa R para decir:
 
 Si hacés
 
-``` r
+```{r}
 left_join(db1, by = "id")
+
 ```
 
 R busca únicamente que coincida el `id`.
@@ -116,7 +119,7 @@ Ahora imaginemos esto.
 
 Si hicieras
 
-``` r
+```{r}
 by = "id"
 ```
 
@@ -142,23 +145,25 @@ R dice:
 
 Entonces:
 
-``` text
+```{text}
 id = 1
 edad = 20
 ```
 
 se une únicamente con
 
-``` text
+```{text}
 id = 1
 edad = 20
+
 ```
 
 y no con
 
-``` text
+```{text}
 id = 1
 edad = 21
+
 ```
 
 ------------------------------------------------------------------------
@@ -171,18 +176,20 @@ Hay dos alumnos llamados Juan Pérez.
 
 Si buscás solamente por:
 
-``` text
+```{text}
 Nombre
+
 ```
 
 tenés un problema.
 
 Pero si buscás por
 
-``` text
+```{text}
 Nombre
 +
 DNI
+
 ```
 
 ya identificás a una sola persona.
@@ -206,8 +213,9 @@ El nombre del departamento puede repetirse en distintas provincias.
 
 Entonces la llave natural sería:
 
-``` r
+```{r}
 by = c("provincia", "departamento")
+
 ```
 
 porque juntas identifican una observación única.
@@ -218,9 +226,7 @@ porque juntas identifican una observación única.
 
 ¿Recordás cuando hablábamos de **llaves primarias** en bases de datos?
 
-Esto está muy relacionado.
-
-Una llave primaria puede ser:
+Esto está muy relacionado. Una llave primaria puede ser:
 
 - una sola columna (`id`), o
 - una **llave compuesta**, formada por varias columnas (`id` + `edad`, o `provincia` + `departamento`).
@@ -233,20 +239,22 @@ Una llave primaria puede ser:
 
 Acá hay un patrón que se repite en muchas funciones de `tidyr`:
 
-- 
+- **`id_cols`** → quién identifica las filas.
+- **`names_from`** → quién genera los nombres de las nuevas columnas.
+- **`values_from`** → de qué columna salen los datos que van dentro de esas nuevas columnas.
+- **`values_fill`** → qué hacer si alguna celda queda vacía.
 
--  **`id_cols`** → quién identifica las filas.
 
-- 
+across() solo puede aparecer dentro de funciones como:
+```{text}
+mutate()
+summarise()
+filter() (en algunos casos)
+reframe()
 
--  **`names_from`** → quién genera los nombres de las nuevas columnas.
+```
 
-- 
-
--  **`values_from`** → de qué columna salen los datos que van dentro de esas nuevas columnas.
-
-- 
-
--  **`values_fill`** → qué hacer si alguna celda queda vacía.
-
-- 
+¿Por qué?
+Porque por sí solo no tiene sentido. No hace nada con el resultado.
+Necesita que otra función diga:  
+                                "Estas columnas nuevas agregalas."
