@@ -40,7 +40,38 @@ alumnos <- data.frame(
 ```
 
 ```{r}
-alumnos |> 
-  mutate()
+alumnos |> mutate(p_matematica = (matematica / 10) * 100,
+                  p_historia = (historia / 10) * 100,
+                  p_geografia = (geografia/10) * 100 
+                  )
+
+```
+
+```{r}
+alumnos2 <-  alumnos |> mutate(across(c(matematica, historia, geografia),
+                                      .fns = \(.x) (.x /10) * 100,
+                                      .names = "p_{.col}"
+                                      )
+                               )
+```
+
+
+
+
+```{r}
+paises <- data.frame(
+  pais = c("A", "B", "C"),
+  hombres = c(100, 80, 120),
+  mujeres = c(110, 90, 130)
+)
+
+paises |> mutate(p_hombres =  hombres / (hombres + mujeres) *100,
+                 p_mujeres =  mujeres / (hombres + mujeres) *100 
+                 )
+paises2 <- paises |> mutate(  across (.cols = c(hombres, mujeres), 
+                                      .fns = \(.x) (.x/ (hombres+mujeres)*100) 
+                                      .names = "p_{.col}")
+                              )
+
 ```
 
