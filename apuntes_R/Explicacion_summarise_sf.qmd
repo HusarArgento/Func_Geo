@@ -339,23 +339,23 @@ ero en `dplyr` quisieron que todas las operaciones de "recortar filas" tuvieran 
 
 - 
 
--  `slice_head()` → primeras filas.
+- `slice_head()` → primeras filas.
 
 - 
 
--  `slice_tail()` → últimas filas.
+- `slice_tail()` → últimas filas.
 
 - 
 
--  `slice_sample()` → muestra aleatoria (¡la usamos hace unos días!).
+- `slice_sample()` → muestra aleatoria (¡la usamos hace unos días!).
 
 - 
 
--  `slice_min()` → filas con los valores mínimos.
+- `slice_min()` → filas con los valores mínimos.
 
 - 
 
--  `slice_max()` → filas con los valores máximos.
+- `slice_max()` → filas con los valores máximos.
 
 - 
 
