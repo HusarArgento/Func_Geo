@@ -362,3 +362,27 @@ ero en `dplyr` quisieron que todas las operaciones de "recortar filas" tuvieran 
 ¿Notás el patrón?
 
 Toda la familia empieza con **`slice_`**.
+
+orque está describiendo un patrón muy conocido en ciencia de datos:
+
+Split – Apply – Combine
+
+Ese patrón fue popularizado por Hadley Wickham hace muchos años.
+
+La idea conceptual es:
+
+Separar los datos en grupos. Aplicar una operación a cada grupo. Combinar los resultados.
+
+Pero group_by() no implementa el "split" literalmente. Lo implementa de forma lógica.
+
+¿Cómo lo explicaría yo?
+
+Yo escribiría algo así:
+
+1.  Agrupamos los datos según una variable (estado).
+
+2.  Las funciones posteriores se ejecutarán independientemente dentro de cada grupo.
+
+3.  Según la función utilizada, obtendremos el mismo data frame con nuevas columnas (mutate) o un resumen por grupo (summarise).
+
+Creo que esa explicación reduce mucho la confusión.
