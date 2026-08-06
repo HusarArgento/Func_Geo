@@ -6,7 +6,7 @@
 library(fs)
 
 # Son todos paquetes que integran el mega paquete {tidyverse}
-# library(tidyverse)
+library(tidyverse)
 library(dplyr)
 library(tidyr)
 library(stringr)

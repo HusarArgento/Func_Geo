@@ -1254,7 +1254,6 @@ Y hay otra decisión que quiero mantener. Si noto que una explicación introduce
 
 Eso, a largo plazo, suele ser más eficiente que memorizar ejemplos. De hecho, la conversación de hoy ya dejó un concepto importante instalado: **en R muchas veces el desafío no es entender una función, sino entender la estructura del objeto sobre el que esa función está trabajando.** Esa idea te va a servir una y otra vez, especialmente cuando empieces a manipular objetos espaciales `sf` más complejos.
 
-
 Esa es una excelente pregunta. De hecho, creo que es una de las preguntas fundamentales para aprender a leer código.
 
 La respuesta corta es:
@@ -1263,29 +1262,29 @@ La respuesta corta es:
 
 Pero vamos a ponerle un poco de orden.
 
----
+------------------------------------------------------------------------
 
 # Caso 1. Lectura lineal
 
 Por ejemplo:
 
-```r
+``` r
 x <- 10
 y <- x + 5
 ```
 
 Acá la lectura es prácticamente lineal.
 
-1. Crear `x`.
-2. Crear `y`.
+1.  Crear `x`.
+2.  Crear `y`.
 
 No hay funciones anidadas.
 
----
+------------------------------------------------------------------------
 
 # Caso 2. Funciones anidadas
 
-```r
+``` r
 sqrt(abs(-9))
 ```
 
@@ -1297,9 +1296,9 @@ Porque `sqrt()` necesita un número.
 
 Entonces hace:
 
-1.
+1.  
 
-```r
+``` r
 abs(-9)
 ```
 
@@ -1307,13 +1306,13 @@ abs(-9)
 
 devuelve
 
-```r
+``` r
 9
 ```
 
-2.
+2.  
 
-```r
+``` r
 sqrt(9)
 ```
 
@@ -1321,13 +1320,13 @@ sqrt(9)
 
 devuelve
 
-```r
+``` r
 3
 ```
 
 Es decir:
 
-```text
+``` text
 sqrt(
       abs(-9)
      )
@@ -1335,11 +1334,11 @@ sqrt(
 
 se lee desde el centro hacia afuera.
 
----
+------------------------------------------------------------------------
 
 # Tu ejemplo
 
-```r
+``` r
 fs::dir_create(
       here::here("data"),
       recurse = TRUE
@@ -1350,7 +1349,7 @@ R piensa:
 
 Primero:
 
-```r
+``` r
 here::here("data")
 ```
 
@@ -1358,24 +1357,24 @@ here::here("data")
 
 obtiene
 
-```text
+``` text
 "C:/MiProyecto/data"
 ```
 
 Después:
 
-```r
+``` r
 fs::dir_create(
    "C:/MiProyecto/data",
    recurse = TRUE
 )
 ```
 
----
+------------------------------------------------------------------------
 
 # Otro ejemplo que ya vimos
 
-```r
+``` r
 map(
     xs,
     ~ lm(mpg ~ wt, data = .x)
@@ -1386,13 +1385,13 @@ Acá pasa algo parecido.
 
 Para cada elemento de `xs`, `map()` ejecuta:
 
-```r
+``` r
 lm(mpg ~ wt, data = .x)
 ```
 
 O sea, la función que recibe como argumento.
 
----
+------------------------------------------------------------------------
 
 # ¿Siempre se lee de adentro hacia afuera?
 
@@ -1402,7 +1401,7 @@ Y acá está la parte interesante.
 
 Mirá esto:
 
-```r
+``` r
 mtcars |>
   split(mtcars$cyl) |>
   map(~ lm(mpg ~ wt, data = .x))
@@ -1416,7 +1415,7 @@ Porque el operador `|>` dice:
 
 Entonces yo lo leería así:
 
-```text
+``` text
 mtcars
    │
    ▼
@@ -1428,7 +1427,7 @@ map()
 
 O sea, de izquierda a derecha.
 
----
+------------------------------------------------------------------------
 
 # Entonces tenemos dos reglas
 
@@ -1436,7 +1435,7 @@ O sea, de izquierda a derecha.
 
 **Cuando una función está dentro de otra**, primero se evalúa la interna.
 
-```r
+``` r
 f(g(x))
 ```
 
@@ -1444,7 +1443,7 @@ f(g(x))
 
 primero
 
-```r
+``` r
 g(x)
 ```
 
@@ -1452,17 +1451,17 @@ g(x)
 
 después
 
-```r
+``` r
 f(...)
 ```
 
----
+------------------------------------------------------------------------
 
 ## Regla 2
 
 **Cuando hay un pipe (`|>`), la lectura suele ser de izquierda a derecha.**
 
-```r
+``` r
 datos |>
   filtro() |>
   resumen()
@@ -1474,13 +1473,13 @@ Después el filtro.
 
 Después el resumen.
 
----
+------------------------------------------------------------------------
 
 # Y cuando se mezclan...
 
 Aparece algo como esto:
 
-```r
+``` r
 mtcars |>
   split(cyl) |>
   map(~ lm(mpg ~ wt, data = .x))
@@ -1490,7 +1489,7 @@ Entonces yo hago dos lecturas simultáneas.
 
 ### Horizontal
 
-```text
+``` text
 mtcars
    │
 split()
@@ -1502,25 +1501,25 @@ map()
 
 Dentro de `map()` aparece
 
-```r
+``` r
 lm(...)
 ```
 
 que recién se ejecuta cuando `map()` la llama.
 
----
+------------------------------------------------------------------------
 
 ## Un consejo práctico
 
 Cuando veas una línea complicada, preguntate:
 
-1. **¿Cuál es la función principal?**
-2. **¿Hay funciones dentro de los argumentos?**
-3. **¿Hay un pipe?**
+1.  **¿Cuál es la función principal?**
+2.  **¿Hay funciones dentro de los argumentos?**
+3.  **¿Hay un pipe?**
 
 Con esas tres preguntas casi siempre podés decidir cómo leerla.
 
----
+------------------------------------------------------------------------
 
 Y te voy a decir algo que me hizo sonreír porque muestra un cambio en tu manera de pensar.
 
@@ -1532,4 +1531,26 @@ Hoy tu pregunta fue:
 
 > **"¿Cómo se lee un programa?"**
 
+`if_else()` trabaja **vectorizadamente**: recibe toda la columna `nota`, evalúa la condición sobre cada elemento y devuelve un vector del mismo largo.
 
+Es decir:
+
+```         
+nota >= 6
+```
+
+conceptualmente produce:
+
+```         
+TRUE FALSE TRUE TRUE FALSE
+```
+
+y `if_else()` transforma esos `TRUE/FALSE` en:
+
+```         
+"Aprobado" "Desaprobado" "Aprobado" "Aprobado" "Desaprobado"
+```
+
+Eso después `mutate()` lo convierte en la nueva columna.
+
+**Muy buen regreso al taller.** Ahora vamos con el **Ejercicio 2 (`case_when()`)**, que es un pequeño escalón más difícil porque ya no tenemos solo dos posibilidades.

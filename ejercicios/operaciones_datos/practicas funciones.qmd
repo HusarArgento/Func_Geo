@@ -55,9 +55,6 @@ alumnos2 <-  alumnos |> mutate(across(c(matematica, historia, geografia),
                                )
 ```
 
-
-
-
 ```{r}
 paises <- data.frame(
   pais = c("A", "B", "C"),

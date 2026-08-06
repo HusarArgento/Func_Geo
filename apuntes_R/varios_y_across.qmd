@@ -244,8 +244,8 @@ Acá hay un patrón que se repite en muchas funciones de `tidyr`:
 - **`values_from`** → de qué columna salen los datos que van dentro de esas nuevas columnas.
 - **`values_fill`** → qué hacer si alguna celda queda vacía.
 
-
 across() solo puede aparecer dentro de funciones como:
+
 ```{text}
 mutate()
 summarise()
@@ -254,7 +254,16 @@ reframe()
 
 ```
 
-¿Por qué?
-Porque por sí solo no tiene sentido. No hace nada con el resultado.
-Necesita que otra función diga:  
-                                "Estas columnas nuevas agregalas."
+¿Por qué? Porque por sí solo no tiene sentido. No hace nada con el resultado. Necesita que otra función diga:\
+"Estas columnas nuevas agregalas."
+
+## 📋 Resumen completo
+
+| Verbo | Uso común con `across()` | Ejemplo |
+|----|----|----|
+| **`mutate()`** | Transformar columnas | `mutate(across(num, ~ .x * 2))` |
+| **`summarise()`** | Estadísticas resumen | `summarise(across(num, mean))` |
+| **`filter()`** | Filtrar por condiciones | `filter(across(num, ~ .x > 0))` |
+| **`arrange()`** | Ordenar por columnas | `arrange(across(num, desc))` |
+| **`rename_with()`** | Renombrar columnas | `rename_with(num, toupper)` |
+| **`group_by()`** | Agrupar (antes de summarise) | `group_by(grupo) %>% summarise(across(...))` |
