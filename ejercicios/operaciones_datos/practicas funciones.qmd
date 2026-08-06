@@ -72,3 +72,114 @@ paises2 <- paises |> mutate(  across (.cols = c(hombres, mujeres),
 
 ```
 
+```{r}
+alumnos <- data.frame(
+  nombre = c("Ana", "Luis", "Carla", "Pedro", "Sofía"),
+  edad = c(19, 22, 18, 25, 21),
+  nota = c(8, 5, 9, 6, 4)
+)
+```
+
+```{r}
+alumnos <- alumnos |> mutate(
+  resultado = if_else(nota >= 6, "Aprobado", "Desaprobado"
+                      )
+) 
+```
+
+
+```{r}
+#case when
+alumnos <- alumnos |> mutate(categoria_edad = 
+                    case_when(
+                      edad < 20 ~ "Joven", 
+                      edad >= 20 & edad <= 24 ~ "Adulto joven", 
+                      edad >= 25 ~ "Adulto" 
+                      )
+                    )
+```
+
+```{r}
+#between
+
+library(dplyr)
+
+alumnos <- alumnos |> mutate(categoria_edad = 
+                    case_when(
+                      edad < 20 ~ "Joven", 
+                      between(edad, 20, 24) ~ "Adulto joven", 
+                      edad >= 25 ~ "Adulto", 
+                      TRUE ~ "Edad no válida"
+                    )
+                  )
+```
+
+
+```{r}
+alumnos2 <- data.frame(
+  nombre = c("Ana", "Luis", "Carla"),
+  nota_matematica = c(8, 6, 9),
+  nota_historia = c(7, 8, 5),
+  nota_geografia = c(9, 7, 10)
+)
+```
+
+```{r}
+alumnos2 <-  alumnos |> mutate(across(
+  .cols = starts_with("nota"), 
+  .fns = \(.x) (.x /10) * 100,
+  .names = "p_{.col}"
+  )
+  )
+```
+
+
+```{r}
+personas <- data.frame(
+  nombre = c("Ana", "Luis", "Carla", "Pedro"),
+  edad = c(19, 34, 22, 51),
+  ingreso = c(500000, 850000, 620000, 1200000),
+  gasto = c(300000, 600000, 400000, 800000)
+)
+options(scipen = 999)
+
+```
+
+```{r}
+personas <- personas|>
+  mutate(situacion = 
+           case_when(
+             ingreso > gasto ~ "Superavit",
+             ingreso < gasto ~ "Deficit",
+             ingreso == gasto ~ "Equilibrio"
+             )
+         )
+
+```
+
+```{r}
+hogares <- data.frame(
+  hogar = 1:4,
+  ingreso_anual = c(6000000, 8400000, 4800000, 12000000),
+  gasto_anual = c(4800000, 7200000, 5400000, 9600000)
+)
+```
+
+```{r}
+hogares |>
+  mutate(
+    across(
+      .cols = ends_with("_anual"),
+      .fns = \(x) x / 12,
+      .names = "nuevo_{.col}"
+    )
+  ) |>
+  rename_with(
+    ~ str_replace(.x, "nuevo_(.*)_anual", "\\1_mensual"),
+    .cols = starts_with("nuevo_")
+  )
+
+#across no acepta funciones como str_replace entonces hay que hacerlo end dos pasos
+
+```
+
