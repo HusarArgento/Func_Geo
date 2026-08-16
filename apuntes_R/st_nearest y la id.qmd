@@ -1,0 +1,368 @@
+---
+title: "St_nearest"
+author: "LSM"
+format: html
+editor: visual
+---
+
+## Quarto
+
+Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.
+
+## Running Code
+
+When you click the **Render** button a document will be generated that includes both content and the output of embedded code. You can embed code like this:
+
+```{r}
+1 + 1
+```
+
+You can add options to executable code like this
+
+```{r}
+#| echo: false
+2 * 2
+```
+
+Sí, **conceptualmente sí**, pero quiero hacer una pequeña corrección para que no te quede una idea equivocada.
+
+Cuando hacés:
+
+```{r}
+id_salud = st_nearest_feature(barrios2, salud2)
+```
+
+`st_nearest_feature()` devuelve **el índice de la fila de `salud2` que está más cerca** de cada barrio.
+
+En este ejercicio, como `salud2$id` coincide con el número de fila, podemos decir tranquilamente:
+
+> **`id_salud` indica el `id` del centro de salud más cercano.**
+
+Por ejemplo:
+
+```{text}
+barrio       id_salud
+Palermo          1
+Caballito        2
+Almagro          2
+Villa 15         3
+Villa 21-24      3
+Villa 31         4
+```
+
+Y:
+
+```{text}
+salud2
+
+id   nombre
+1    Hospital A
+2    Hospital B
+3    Centro C
+4    Centro D
+```
+
+Entonces:
+
+* Palermo → `id_salud = 1` → Hospital A
+* Caballito → `id_salud = 2` → Hospital B
+* Almagro → `id_salud = 2` → Hospital B
+* Villa 15 → `id_salud = 3` → Centro C
+* Villa 21-24 → `id_salud = 3` → Centro C
+* Villa 31 → `id_salud = 4` → Centro D
+
+### La precisión importante
+
+Técnicamente:
+
+```{r}
+st_nearest_feature()
+```
+
+no está diciendo:
+
+> "Buscá el `id` del hospital más cercano."
+
+Está diciendo:
+
+> "Decime **qué fila de `salud2`** es la más cercana."
+
+Que en **nuestro ejercicio** sea lo mismo que decir "qué `id` tiene ese hospital" es una consecuencia de que tenemos:
+
+```{text}
+fila 1 → id 1
+fila 2 → id 2
+fila 3 → id 3
+fila 4 → id 4
+```
+
+En un dataset real podrías tener:
+
+```{text}
+fila     id
+1        47
+2        103
+3        205
+4        891
+```
+
+Ahí `st_nearest_feature()` devolvería:
+
+```{text}
+1
+2
+3
+4
+```
+
+pero esos **no serían los `id` reales**.
+
+Por eso, si queremos hacerlo de manera robusta, podemos usar el índice obtenido por `st_nearest_feature()` para traer el verdadero `id` del centro.
+
+Pero **para este ejercicio**, tu interpretación es correcta:
+
+> **`id_salud` identifica qué centro de salud es el más cercano a cada barrio.**
+
+Y ahora se entiende perfectamente por qué hacemos el `left_join()`: tenemos la referencia al centro, y queremos traer desde `salud2` sus atributos (`nombre` y `camas`).
+
+```{r}
+barrios2 <- barrios2 |> 
+  left_join(
+    salud2 |> 
+      select(id, nombre, camas),
+    by = c("id_salud" = "id")
+  )
+```
+
+```{r}
+barrios2 <- barrios2 |> 
+  left_join(
+    salud2 |> 
+      st_drop_geometry() |> 
+      select(id, nombre, camas),
+    by = c("id_salud" = "id")
+  )
+```
+
+No tenés que disculparte. Acá hay una sutileza de R que vale la pena desarmar despacio. Vamos a olvidarnos un minuto del código anterior.
+
+### La idea básica
+
+Tenemos `salud2`:
+
+| Posición de fila | `id` | nombre     |
+| ---------------: | ---: | ---------- |
+|                1 |  101 | Hospital A |
+|                2 |  205 | Hospital B |
+|                3 |  317 | Centro C   |
+|                4 |  422 | Centro D   |
+
+Ahora hacemos:
+
+```r
+st_nearest_feature(barrios2, salud2)
+```
+
+Supongamos que para Villa 15 devuelve:
+
+```r
+3
+```
+
+Ese **3 significa "la fila 3 de `salud2`"**.
+
+Y si miramos la fila 3:
+
+```text
+fila 3 → id 317 → Centro C
+```
+
+Entonces nosotros queremos transformar:
+
+```text
+3
+```
+
+en:
+
+```text
+317
+```
+
+---
+
+### ¿Cómo hacemos eso?
+
+Acá está la parte que te había complicado:
+
+```r
+salud2$id
+```
+
+nos da todos los `id`:
+
+```text
+101  205  317  422
+```
+
+Y podemos pedirle a R:
+
+> "Dame el elemento número 3 de este vector."
+
+Así:
+
+```r
+salud2$id[3]
+```
+
+R responde:
+
+```text
+317
+```
+
+¿Ves la idea?
+
+---
+
+### Ahora metemos `st_nearest_feature()`
+
+En vez de escribir:
+
+```r
+salud2$id[3]
+```
+
+hacemos:
+
+```r
+salud2$id[
+  st_nearest_feature(barrios2, salud2)
+]
+```
+
+Si `st_nearest_feature()` devuelve:
+
+```text
+3
+```
+
+R interpreta:
+
+```r
+salud2$id[3]
+```
+
+y obtiene:
+
+```text
+317
+```
+
+Por eso el código:
+
+```r
+barrios2 <- barrios2 |> 
+  mutate(
+    id_salud = salud2$id[
+      st_nearest_feature(barrios2, salud2)
+    ]
+  )
+```
+
+significa simplemente:
+
+> **"Buscá qué fila de `salud2` es la más cercana y después dame el `id` que tiene esa fila."**
+
+---
+
+### Y en nuestro ejercicio original
+
+Tenemos:
+
+```text
+fila    id
+ 1       1
+ 2       2
+ 3       3
+ 4       4
+```
+
+Por eso:
+
+```r
+salud2$id[3]
+```
+
+también da:
+
+```text
+3
+```
+
+Y **por eso no notamos la diferencia**.
+
+No estabas lento: la dificultad está en que acá se mezclan tres conceptos a la vez —**fila, índice e ID**— y R los trata de una manera bastante poco pedagógica. Este era justamente un buen punto para frenar.
+
+
+Exactamente. **Esa es la idea.**
+
+La frase humana sería:
+
+> **"Para cada barrio, buscame el centro de salud más cercano y dame el `id` que tiene ese centro."**
+
+Y en código:
+
+```r id="f6u8s0"
+salud2$id[
+  st_nearest_feature(barrios2, salud2)
+]
+```
+
+Hace dos cosas consecutivas:
+
+1. `st_nearest_feature(barrios2, salud2)`
+   → encuentra **qué fila** de `salud2` es la más cercana a cada barrio.
+
+2. `salud2$id[...]`
+   → usando esas posiciones, busca **el `id` correspondiente a cada fila**.
+
+Por ejemplo, si devuelve:
+
+```text id="w0n4cb"
+st_nearest_feature()
+3
+2
+2
+4
+3
+1
+```
+
+y los IDs reales son:
+
+```text id="9c0w0h"
+fila     id
+1        101
+2        205
+3        317
+4        422
+```
+
+entonces:
+
+```text id="8a5b7m"
+id_salud
+317
+205
+205
+422
+317
+101
+```
+
+Es decir:
+
+> **No querés guardar la posición de la fila. Querés usar esa posición para recuperar el ID real del centro más cercano.**
+
+Exactamente eso.
