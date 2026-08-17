@@ -348,7 +348,6 @@ mapa
 
 ```
 
-
 ```{r}
 ggplot() +
   # recorte
@@ -387,7 +386,7 @@ A partir de ahora voy a hacer de **cliente**, no de profesor.
 
 Vos vas a tener que decidir el flujo de trabajo.
 
----
+------------------------------------------------------------------------
 
 # Ejercicio 4 - Cliente real
 
@@ -401,7 +400,7 @@ Eso es todo.
 
 No hay ninguna pista técnica.
 
----
+------------------------------------------------------------------------
 
 ## Tus objetivos
 
@@ -411,15 +410,15 @@ Quiero que pienses una solución cartográfica.
 
 Puede incluir:
 
-* un mapa principal;
-* un mapa secundario;
-* un detalle;
-* un recorte;
-* otra idea.
+- un mapa principal;
+- un mapa secundario;
+- un detalle;
+- un recorte;
+- otra idea.
 
 Pero la decisión tiene que ser tuya.
 
----
+------------------------------------------------------------------------
 
 ## Reglas
 
@@ -433,7 +432,7 @@ Primero preguntate:
 
 Después recién aparecen las funciones.
 
----
+------------------------------------------------------------------------
 
 ## ¿Qué espero de vos?
 
@@ -443,11 +442,11 @@ Quiero un pequeño diseño del proyecto.
 
 Algo como esto:
 
-1. ¿Qué mapas harías?
-2. ¿Qué comunicaría cada uno?
-3. ¿Por qué elegís esa solución y no otra?
+1.  ¿Qué mapas harías?
+2.  ¿Qué comunicaría cada uno?
+3.  ¿Por qué elegís esa solución y no otra?
 
----
+------------------------------------------------------------------------
 
 ### ¿Por qué este ejercicio?
 
@@ -463,14 +462,14 @@ Te dicen:
 
 Y vos decidís si la solución es:
 
-* un recorte;
-* un inset;
-* dos mapas;
-* cambiar la simbología;
-* otra escala;
-* o incluso concluir que no hace falta cambiar nada.
+- un recorte;
+- un inset;
+- dos mapas;
+- cambiar la simbología;
+- otra escala;
+- o incluso concluir que no hace falta cambiar nada.
 
----
+------------------------------------------------------------------------
 
 ## Mi objetivo con vos
 
@@ -576,7 +575,6 @@ ggplot() +
   )
 ```
 
-
 ```{r}
 centroide_log <- box_b |> 
   summarise()|>
@@ -602,15 +600,16 @@ vec_5_menores <- sort(distancias)[1:5]
 rownames(distancias)
 ```
 
-
 ```{r}
 colnames(distancias)
 ```
+
 ```{r}
 m <- matrix(1:6, nrow = 2)
 
 m
 ```
+
 ```{r}
 box_b <- box_b |>
   mutate(
@@ -623,11 +622,11 @@ box_b <- box_b |>
 ordenada <- arrange(box_b) |>
   slice_head(n = 5)
 ```
-  
+
 ```{r}
 rutas <- st_read(dsn = here::here("data", "gpt-ejercicios", "vial_nacional.geojson"))
 ```
-  
+
 ```{r}
 matrizr <- st_distance(ordenada, rutas)
 dist_min <- apply(matrizr, 1, min)
@@ -641,4 +640,102 @@ ordenada2 <- ordenada |>
   )
 ```
 
-  
+#Ejercicio 7
+```{r}
+#Barrios
+barrios <- data.frame(
+  id = 1:6,
+  barrio = c("Palermo", "Caballito", "Almagro",
+             "Villa 15", "Villa 21-24", "Villa 31"),
+  poblacion = c(150000, 130000, 140000, 25000, 45000, 40000),
+  ingreso_medio = c(1200, 950, 900, 350, 400, 450)
+)
+```
+
+```{r}
+#Centros de salud
+salud <- data.frame(
+  id = 1:4,
+  nombre = c("Hospital A", "Hospital B", "Centro C", "Centro D"),
+  camas = c(500, 350, 100, 150)
+)
+```
+
+```{r}
+coords <- data.frame(
+  barrio = c("Palermo", "Caballito", "Almagro",
+             "Villa 15", "Villa 21-24", "Villa 31"),
+  lon = c(-58.412, -58.438, -58.419,
+          -58.474, -58.447, -58.451),
+  lat = c(-34.578, -34.618, -34.604,
+          -34.668, -34.656, -34.578)
+)
+
+barrios2 <- barrios |>
+  left_join(coords, by = "barrio")
+```
+
+
+```{r}
+coords_h <- data.frame(
+  nombre = c("Hospital A", "Hospital B", "Centro C",
+             "Centro D"),
+  lon = c(-58.410, -58.435, -58.455,
+          -58.450),
+  lat = c(-34.590, -34.620, -34.650,
+          -34.580)
+)
+
+salud2 <- salud |>
+  left_join(coords_h, by = "nombre")
+
+```
+
+#Dar geometria
+```{r}
+library(sf)
+
+barrios2 <- st_as_sf(
+  barrios2,
+  coords = c("lon", "lat"),
+  crs = 4326
+)
+
+salud2 <- st_as_sf(
+  salud2,
+  coords = c("lon", "lat"),
+  crs = 4326
+)
+
+```
+
+#Transformar geometria
+```{r}
+
+barrios2 <- barrios2 |> 
+  st_transform(crs = 3857)
+
+salud2 <- salud2 |> 
+  st_transform(crs = 3857)
+
+transf_crs <- function(data_i, crs_i) {
+  st_transform(data_i, crs_i)
+}
+```
+
+```{r}
+barrios2 <- barrios2 |> 
+  mutate(
+  id_salud = st_nearest_feature(barrios2, salud2)
+  )
+
+barrios2 <- barrios2 |> 
+  left_join(
+    salud2 |> 
+      st_drop_geometry() |> 
+      select(id, nombre, camas),
+    by = c("id_salud" = "id")
+  )
+barrios2 <- select(barrios2, -nombre.x, -camas.x)
+```
+
