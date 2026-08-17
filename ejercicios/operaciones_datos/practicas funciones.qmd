@@ -183,3 +183,39 @@ hogares |>
 
 ```
 
+
+```{r}
+library(sf)
+
+ciudades <- data.frame(
+  id = 1:4,
+  nombre = c("Rosario", "Cordoba", "Mendoza", "Salta"),
+  lon = c(-60.639, -64.183, -68.827, -65.410),
+  lat = c(-32.944, -31.420, -32.890, -24.782)
+)
+ciudades_sf <- st_as_sf(ciudades, coords = c("lon", "lat"), crs = 4326)
+
+aeropuertos <- data.frame(
+  id = 1:3,
+  nombre = c("Aeropuerto Norte", "Aeropuerto Centro", "Aeropuerto Sur"),
+  lon = c(-64.2, -65.4, -68.9),
+  lat = c(-31.3, -24.8, -32.8)
+)
+aeropuertos_sf <- st_as_sf(aeropuertos, coords = c("lon", "lat"), crs = 4326)
+```
+
+```{r}
+vecino_mas_cercano <- st_nearest_feature(ciudades_sf, aeropuertos_sf)
+vecino_mas_cercano
+
+```
+
+```{r}
+ciudades_sf$dist_aeropuerto <- st_distance(
+  ciudades_sf$geometry,
+  aeropuertos_sf$geometry[vecino_mas_cercano],
+  by_element = TRUE
+)
+
+```
+
