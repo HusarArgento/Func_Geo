@@ -641,6 +641,7 @@ ordenada2 <- ordenada |>
 ```
 
 #Ejercicio 7
+
 ```{r}
 #Barrios
 barrios <- data.frame(
@@ -675,7 +676,6 @@ barrios2 <- barrios |>
   left_join(coords, by = "barrio")
 ```
 
-
 ```{r}
 coords_h <- data.frame(
   nombre = c("Hospital A", "Hospital B", "Centro C",
@@ -692,6 +692,7 @@ salud2 <- salud |>
 ```
 
 #Dar geometria
+
 ```{r}
 library(sf)
 
@@ -710,6 +711,7 @@ salud2 <- st_as_sf(
 ```
 
 #Transformar geometria
+
 ```{r}
 
 barrios2 <- barrios2 |> 
@@ -738,4 +740,3 @@ barrios2 <- barrios2 |>
   )
 barrios2 <- select(barrios2, -nombre.x, -camas.x)
 ```
-
