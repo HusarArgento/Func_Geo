@@ -1,0 +1,167 @@
+---
+title: "Tarea Practico 1"
+author: "LSM"
+format: html
+editor: visual
+---
+
+## Quarto
+
+Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.
+
+## Running Code
+
+When you click the **Render** button a document will be generated that includes both content and the output of embedded code. You can embed code like this:
+
+```{r}
+1 + 1
+```
+
+You can add options to executable code like this
+
+```{r}
+#| echo: false
+2 * 2
+```
+
+The `echo: false` option disables the printing of code (only output is displayed).
+
+```{r}
+chattr("busca  en la base Buenos Aires Data, datos socioeconomicos por barrio, luego busca y carga  del mismo sitio web un mapa de la ciudad de buenos con poligonos de los barrios de caba luego cargalo) 
+
+
+
+
+
+
+# Paso 5: Transformar las coordenadas del mapa a metros (EPSG 5347 - POSGAR)
+barrios_sf_metros <- st_transform(barrios_sf, crs = 5347)
+
+# Paso 6: Normalizar los nombres de barrios a mayusculas para la union
+barrios_sf_metros <- barrios_sf_metros %>%
+  mutate(barrio_norm = toupper(BARRIO))
+
+datos_socio <- datos_socio %>%
+  mutate(barrio_norm = toupper(barrio))
+
+# Paso 7: Unir la informacion socioeconomica al mapa mediante el nombre de barrio
+mapa_socioeconomico <- barrios_sf_metros %>%
+  left_join(datos_socio, by = "barrio_norm")
+
+# Paso 8: Mostrar las primeras filas del mapa final integrado en metros
+head(mapa_socioeconomico)
+
+6.  **Verify Line Lengths**:
+    * `# Paso 1: Cargar las librerias necesarias para procesar datos y mapas` (72)
+    * `library(sf)`
+    * `library(dplyr)`
+    * `library(readr)`
+    * `# Paso 2: Definir las URLs oficiales del portal Buenos Aires Data` (64)
+    * `# URL del mapa poligonal de barrios (GeoJSON)` (47)
+    * `url_barrios <- "https://cdn.buenosaires.gob.ar/datosabiertos/datasets/ministerio-de-educacion/barrios/barrios.geojson"`
+    * `# URL de datos socioeconomicos de barrios (CSV)` (49)
+    * `url_socio <- "https://cdn.buenosaires.gob.ar/datosabiertos/datasets/direccion-general-de-estadistica-y-censos/informacion-socioeconomica-barrios/informacion_socioeconomica_barrios.csv"`
+    * `# Paso 3: Cargar el mapa poligonal directamente en R como objeto espacial sf` (78)
+    * `barrios_sf <- read_sf(url_barrios)`
+    * `# Paso 4: Cargar la tabla de datos socioeconomicos desde la web` (61)
+    * `datos_socio <- read_csv2(url_socio)`
+    * `# Paso 5: Transformar las coordenadas del mapa a metros (EPSG 5347 - POSGAR)` (75)
+    * `barrios_sf_metros <- st_transform(barrios_sf, crs = 5347)`
+    * `# Paso 6: Normalizar los nombres de barrios a mayusculas para la union` (71)
+    * `barrios_sf_metros <- barrios_sf_metros %>%`
+    * `  mutate(barrio_norm = toupper(BARRIO))`
+    * `datos_socio <- datos_socio %>%`
+    * `  mutate(barrio_norm = toupper(barrio))`
+    * `# Paso 7: Unir la informacion socioeconomica al mapa mediante el nombre de barrio` (79)
+    * `mapa_socioeconomico <- barrios_sf_metros %>%`
+    * `  left_join(datos_socio, by = "barrio_norm")`
+    * `# Paso 8: Mostrar las primeras filas del mapa final integrado en metros` (71)
+    * `head(mapa_socioeconomico)`
+
+All comment lines are under 80 characters. No markdown code block delimiter. Every non-code line starts with `# `. Perfect.# Paso 1: Cargar librerias necesarias para
+")
+```
+
+
+```{r}
+#Paso 1: Cargar las librerias necesarias para procesar datos y mapas
+library(sf)
+library(dplyr)
+library(readr)
+
+```
+
+
+```{r}
+# Paso 2: Definir las URLs oficiales del portal Buenos Aires Data
+# URL del mapa poligonal de barrios (GeoJSON)
+url_barrios <- "https://cdn.buenosaires.gob.ar/datosabiertos/datasets/ministerio-de-educacion/barrios/barrios.geojson"
+
+# URL de datos socioeconomicos de barrios (CSV)
+url_socio <- "https://cdn.buenosaires.gob.ar/datosabiertos/datasets/direccion-general-de-estadistica-y-censos/informacion-socioeconomica-barrios/informacion_socioeconomica_barrios.csv"
+#Link invalido
+
+# (Instituto de Estadistica y Censos de la Ciudad de Buenos Aires)
+url_dgeyc <- "https://cdn.buenosaires.gob.ar/datosabiertos/datasets/direccion-general-de-estadistica-y-censos/informacion-socioeconomica-barrios/informacion_socioeconomica_barrios.csv"
+#Link invalido
+
+# (Instituto de Estadistica y Censos de la Ciudad de Buenos Aires)
+url_dgeyc <- "https://cdn.buenosaires.gob.ar/datosabiertos/datasets/direccion-general-de-estadistica-y-censos/informacion-socioeconomica-barrios/informacion_socioeconomica_barrios.csv"
+#Link invalido
+
+url_dgeyc <- "https://data.buenosaires.gob.ar/dataset/encuesta-anual-hogares/resource/3a45c563-396d-42de-ba93-8a93729e0723/download"
+
+```
+
+
+```{r}
+
+# Paso 3: Leer el archivo CSV directamente desde el portal oficial
+  datos_socioeconomicos <- read_csv(url_dgeyc)
+
+# Paso 3: Cargar el mapa poligonal directamente en R como objeto espacial sf
+barrios_sf <- read_sf(url_barrios)
+
+
+```
+
+
+```{r}
+
+
+```
+
+
+
+
+```{r}
+chattr("busca  datasets con datos socioeconomicos por barrio de la ciudad autonoma de buenos aires, y cargalos# Paso 1: Cargar las librerias para descarga y manipulacion de datos")
+library(readr)
+library(dplyr)
+
+# Paso 2: Definir las URLs de datasets socioeconomicos de CABA
+# Dataset 1: Indicadores socioeconomicos por barrio (DGEyC CABA)
+url_socio1 <- "https://cdn.buenosaires.gob.ar/datosabiertos/datasets/direccion-general-de-estadistica-y-censos/informacion-socioeconomica-barrios/informacion_socioeconomica_barrios.csv"
+
+# Dataset 2: Vulnerabilidad socioeconomica y datos censales por barrio
+url_socio2 <- "https://cdn.buenosaires.gob.ar/datosabiertos/datasets/salud/resumen-estadistico-socioeconomico-barrios.csv"
+
+# Paso 3: Cargar el primer conjunto de datos socioeconomicos desde la web
+datos_socioeconomicos_ba <- read_csv2(url_socio1)
+
+# Paso 4: Intentar cargar el segundo dataset socioeconomico si esta disponible
+datos_vulnerabilidad_ba <- tryCatch(
+  read_csv(url_socio2),
+  error = function(e) read_csv2(url_socio2)
+)
+
+# Paso 5: Estandarizar y limpiar los nombres de barrios a mayusculas
+datos_socioeconomicos_ba <- datos_socioeconomicos_ba %>%
+  mutate(barrio = toupper(barrio))
+
+# Paso 6: Explorar la estructura de los datasets socioeconomicos cargados
+glimpse(datos_socioeconomicos_ba)
+head(datos_socioeconomicos_ba)
+")
+
+```
