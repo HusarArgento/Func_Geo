@@ -64,12 +64,12 @@ id   nombre
 
 Entonces:
 
-* Palermo → `id_salud = 1` → Hospital A
-* Caballito → `id_salud = 2` → Hospital B
-* Almagro → `id_salud = 2` → Hospital B
-* Villa 15 → `id_salud = 3` → Centro C
-* Villa 21-24 → `id_salud = 3` → Centro C
-* Villa 31 → `id_salud = 4` → Centro D
+- Palermo → `id_salud = 1` → Hospital A
+- Caballito → `id_salud = 2` → Hospital B
+- Almagro → `id_salud = 2` → Hospital B
+- Villa 15 → `id_salud = 3` → Centro C
+- Villa 21-24 → `id_salud = 3` → Centro C
+- Villa 31 → `id_salud = 4` → Centro D
 
 ### La precisión importante
 
@@ -151,7 +151,7 @@ No tenés que disculparte. Acá hay una sutileza de R que vale la pena desarmar 
 Tenemos `salud2`:
 
 | Posición de fila | `id` | nombre     |
-| ---------------: | ---: | ---------- |
+|-----------------:|-----:|------------|
 |                1 |  101 | Hospital A |
 |                2 |  205 | Hospital B |
 |                3 |  317 | Centro C   |
@@ -159,13 +159,13 @@ Tenemos `salud2`:
 
 Ahora hacemos:
 
-```r
+``` {r}
 st_nearest_feature(barrios2, salud2)
 ```
 
 Supongamos que para Villa 15 devuelve:
 
-```r
+``` r
 3
 ```
 
@@ -173,35 +173,35 @@ Ese **3 significa "la fila 3 de `salud2`"**.
 
 Y si miramos la fila 3:
 
-```text
+```{text}
 fila 3 → id 317 → Centro C
 ```
 
 Entonces nosotros queremos transformar:
 
-```text
+``` {text}
 3
 ```
 
 en:
 
-```text
+``` text
 317
 ```
 
----
+------------------------------------------------------------------------
 
 ### ¿Cómo hacemos eso?
 
 Acá está la parte que te había complicado:
 
-```r
+``` {r}
 salud2$id
 ```
 
 nos da todos los `id`:
 
-```text
+``` {text}
 101  205  317  422
 ```
 
@@ -211,31 +211,31 @@ Y podemos pedirle a R:
 
 Así:
 
-```r
+``` {r}
 salud2$id[3]
 ```
 
 R responde:
 
-```text
+```{text}
 317
 ```
 
 ¿Ves la idea?
 
----
+------------------------------------------------------------------------
 
 ### Ahora metemos `st_nearest_feature()`
 
 En vez de escribir:
 
-```r
+``` {r}
 salud2$id[3]
 ```
 
 hacemos:
 
-```r
+``` {r}
 salud2$id[
   st_nearest_feature(barrios2, salud2)
 ]
@@ -243,25 +243,25 @@ salud2$id[
 
 Si `st_nearest_feature()` devuelve:
 
-```text
+``` {text}
 3
 ```
 
 R interpreta:
 
-```r
+``` {r}
 salud2$id[3]
 ```
 
 y obtiene:
 
-```text
+``` {text}
 317
 ```
 
 Por eso el código:
 
-```r
+``` {r}
 barrios2 <- barrios2 |> 
   mutate(
     id_salud = salud2$id[
@@ -274,13 +274,13 @@ significa simplemente:
 
 > **"Buscá qué fila de `salud2` es la más cercana y después dame el `id` que tiene esa fila."**
 
----
+------------------------------------------------------------------------
 
 ### Y en nuestro ejercicio original
 
 Tenemos:
 
-```text
+``` {text}
 fila    id
  1       1
  2       2
@@ -290,20 +290,19 @@ fila    id
 
 Por eso:
 
-```r
+``` {r}
 salud2$id[3]
 ```
 
 también da:
 
-```text
+``` {text}
 3
 ```
 
 Y **por eso no notamos la diferencia**.
 
 No estabas lento: la dificultad está en que acá se mezclan tres conceptos a la vez —**fila, índice e ID**— y R los trata de una manera bastante poco pedagógica. Este era justamente un buen punto para frenar.
-
 
 Exactamente. **Esa es la idea.**
 
@@ -313,56 +312,208 @@ La frase humana sería:
 
 Y en código:
 
-```r id="f6u8s0"
-salud2$id[
-  st_nearest_feature(barrios2, salud2)
-]
-```
+`r id="f6u8s0" salud2$id[   st_nearest_feature(barrios2, salud2) ]`
 
 Hace dos cosas consecutivas:
 
-1. `st_nearest_feature(barrios2, salud2)`
-   → encuentra **qué fila** de `salud2` es la más cercana a cada barrio.
+1.  `st_nearest_feature(barrios2, salud2)` → encuentra **qué fila** de `salud2` es la más cercana a cada barrio.
 
-2. `salud2$id[...]`
-   → usando esas posiciones, busca **el `id` correspondiente a cada fila**.
+2.  `salud2$id[...]` → usando esas posiciones, busca **el `id` correspondiente a cada fila**.
 
 Por ejemplo, si devuelve:
 
-```text id="w0n4cb"
-st_nearest_feature()
-3
-2
-2
-4
-3
-1
-```
+`text id="w0n4cb" st_nearest_feature() 3 2 2 4 3 1`
 
 y los IDs reales son:
 
-```text id="9c0w0h"
-fila     id
-1        101
-2        205
-3        317
-4        422
-```
+`text id="9c0w0h" fila     id 1        101 2        205 3        317 4        422`
 
 entonces:
 
-```text id="8a5b7m"
-id_salud
-317
-205
-205
-422
-317
-101
-```
+`text id="8a5b7m" id_salud 317 205 205 422 317 101`
 
 Es decir:
 
 > **No querés guardar la posición de la fila. Querés usar esa posición para recuperar el ID real del centro más cercano.**
 
 Exactamente eso.
+
+Exactamente. Y acá apareció **el punto central del ejercicio**: no alcanza con saber que devuelve un índice; hay que entender **qué representa ese índice**.
+
+Tu lectura de la documentación es correcta.
+
+### 1. ¿Qué significa "índice"?
+
+En este contexto, pensalo como **la posición de una fila dentro de `y`**.
+
+Supongamos que `salud2` tiene:
+
+| posición |  id | nombre     |
+|---------:|----:|------------|
+|        1 | 101 | Hospital A |
+|        2 | 205 | Hospital B |
+|        3 | 317 | Centro C   |
+|        4 | 422 | Centro D   |
+
+Si hacemos:
+
+``` {r}
+st_nearest_feature(barrios2, salud2)
+```
+
+podríamos obtener:
+
+``` {r}
+3 1 4 2 2 1
+```
+
+Eso significa:
+
+- barrio 1 → el elemento **3 de `salud2`**
+- barrio 2 → el elemento **1 de `salud2`**
+- barrio 3 → el elemento **4 de `salud2`**
+- barrio 4 → el elemento **2 de `salud2`**
+- barrio 5 → el elemento **2 de `salud2`**
+- barrio 6 → el elemento **1 de `salud2`**
+
+Y acá aparece algo que vos ya habías sospechado en nuestro ejercicio anterior:
+
+> **El índice no necesariamente es el `id` del hospital.**
+
+Si `salud2` tiene:
+
+``` {r}
+id = c(101, 205, 317, 422)
+```
+
+el índice `3` significa **tercera fila de `salud2`**, cuyo `id` es `317`.
+
+Por eso esto:
+
+``` r
+3
+```
+
+no significa necesariamente:
+
+``` {r}
+id = 3
+```
+
+Significa:
+
+``` {text}
+posición 3 en el objeto y
+        ↓
+tercera geometría de salud2
+        ↓
+id = 317
+```
+
+### 2. Y acá hay una distinción importante
+
+La documentación está haciendo una separación entre:
+
+**índice**
+
+> posición dentro del objeto.
+
+y
+
+**identificador**
+
+> una variable que nosotros tenemos dentro de los datos.
+
+Por ejemplo:
+
+``` {r}
+salud2
+```
+
+podría tener:
+
+``` text
+fila     id      nombre
+  1      101     Hospital A
+  2      205     Hospital B
+  3      317     Centro C
+  4      422     Centro D
+```
+
+Entonces:
+
+``` {r}
+st_nearest_feature(barrios2, salud2)
+```
+
+devuelve:
+
+``` {text}
+3 1 4 2 2 1
+```
+
+Esos números son **índices posicionales**, no los valores de `id`.
+
+Y esto explica perfectamente lo que hicimos anteriormente cuando guardamos:
+
+``` {r{}
+barrios2$id_salud <- st_nearest_feature(barrios2, salud2)
+```
+
+En realidad, esa columna no estaba guardando necesariamente el `id` del establecimiento. Estaba guardando **la posición del establecimiento correspondiente dentro de `salud2`**.
+
+### 3. Hay una cuestión más que quiero que descubras vos
+
+Ahora que entendimos qué devuelve `st_nearest_feature()`, aparece un nuevo problema:
+
+> Tenemos el índice del establecimiento más cercano. ¿Cómo hacemos para transformar ese índice en el `id` real del establecimiento?
+
+Por ejemplo, si obtenemos:
+
+``` {r}
+3
+1
+4
+2
+```
+
+y queremos terminar teniendo:
+
+``` {text}
+317
+101
+422
+205
+```
+
+Ahí entra otra habilidad de lectura de R que nos interesa practicar: **utilizar un vector de índices para seleccionar elementos de otro vector**.
+
+Pero **no te voy a decir todavía cómo hacerlo**.
+
+Buscá ahora en la documentación de R sobre **indexación de vectores con `[]`**.
+
+La pregunta concreta es:
+
+> Si tengo un vector `id` y otro vector que contiene posiciones, ¿cómo puedo utilizar las posiciones para extraer los valores correspondientes de `id`?
+
+Probalo primero con un ejemplo mínimo, sin `sf`.
+
+Por ejemplo, imaginá:
+
+``` {r}
+id <- c(101, 205, 317, 422)
+
+posiciones <- c(3, 1, 4, 2)
+```
+
+Y queremos obtener:
+
+``` {text}
+317 101 422 205
+```
+
+```{r}
+vector_que_quiero_evaluar %in% vector_donde_busco
+```
+
+

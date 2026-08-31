@@ -87,7 +87,6 @@ alumnos <- alumnos |> mutate(
 ) 
 ```
 
-
 ```{r}
 #case when
 alumnos <- alumnos |> mutate(categoria_edad = 
@@ -114,7 +113,6 @@ alumnos <- alumnos |> mutate(categoria_edad =
                   )
 ```
 
-
 ```{r}
 alumnos2 <- data.frame(
   nombre = c("Ana", "Luis", "Carla"),
@@ -132,7 +130,6 @@ alumnos2 <-  alumnos |> mutate(across(
   )
   )
 ```
-
 
 ```{r}
 personas <- data.frame(
@@ -183,7 +180,6 @@ hogares |>
 
 ```
 
-
 ```{r}
 library(sf)
 
@@ -217,5 +213,86 @@ ciudades_sf$dist_aeropuerto <- st_distance(
   by_element = TRUE
 )
 
+```
+
+```{r}
+municipios <- data.frame(
+  id = 1:8,
+  municipio = c(
+    "La Plata", "Quilmes", "Tigre", "Moreno",
+    "Luján", "Avellaneda", "Pilar", "Merlo"
+  ),
+  region = c(
+    "Sur", "Sur", "Norte", "Oeste",
+    "Oeste", "Sur", "Norte", "Oeste"
+  ),
+  poblacion = c(
+    800000, 650000, 450000, 550000,
+    120000, 350000, 400000, 600000
+  )
+)
+```
+
+```{r}
+regiones_interes <- c("Norte", "Sur")
+```
+
+
+```{r}
+municipios_interes <- municipios |> 
+  filter(region %in% regiones_interes)|>
+  mutate(poblacion_millones = poblacion / 1000000)
+
+```
+
+```{r}
+barrios <- data.frame(
+  id = 1:6,
+  barrio = c("Palermo", "Caballito", "Almagro",
+             "Villa 15", "Villa 21-24", "Villa 31"),
+  poblacion = c(150000, 130000, 140000, 25000, 45000, 40000),
+  ingreso_medio = c(1200, 950, 900, 350, 400, 450),
+  lon = c(-58.4100, -58.4400, -58.4150,
+          -58.4450, -58.4350, -58.4700),
+  lat = c(-34.5880, -34.6180, -34.6030,
+          -34.6650, -34.6500, -34.5800)
+)
+
+estaciones <- data.frame(
+  id = 1:5,
+  nombre = c("Estacion A", "Estacion B", "Estacion C",
+             "Estacion D", "Estacion E"),
+  lon = c(-58.4050, -58.4300, -58.4200,
+          -58.4500, -58.4600),
+  lat = c(-34.5900, -34.6150, -34.6400,
+          -34.6600, -34.5750)
+)
+```
+
+```{r}
+barrios <- barrios |>
+  st_as_sf(coords = c("lon", "lat"), crs = 4326)
+
+estaciones <- estaciones |>
+  st_as_sf(coords = c("lon", "lat"), crs = 4326)
+```
+
+
+```{r}
+barrios_vulnerables <- barrios |>
+  filter(ingreso_medio < 500 ) 
+  
+```
+
+```{r}
+barrios_vulnerables <- barrios_vulnerables |>
+  mutate(id_estacion= st_nearest_feature(barrios_vulnerables, estaciones))
+
+barrios_vulnerables <- barrios_vulnerables |>
+  mutate(nombre_estacion = estaciones$nombre[barrios_vulnerables$id_estacion])
+
+barrios_vulnerables2 <- barrios_vulnerables |>
+  mutate(distancia_m = st_distance(geometry, estaciones[id_estacion, ])  
+         )
 ```
 
