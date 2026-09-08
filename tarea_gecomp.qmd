@@ -27,10 +27,10 @@ You can add options to executable code like this
 The `echo: false` option disables the printing of code (only output is displayed).
 
 ```{r}
-chattr("busca  en la base Buenos Aires Data, datos socioeconomicos por barrio, luego busca y carga  del mismo sitio web un mapa de la ciudad de buenos con poligonos de los barrios de caba luego cargalo) 
+chattr("busca  en la base Buenos Aires Data, datos socioeconomicos por barrio, luego busca y carga  del mismo sitio web un mapa de la ciudad de buenos con poligonos de las comunas de caba luego cargalo") 
 
 
-
+  
 
 
 
@@ -82,15 +82,15 @@ All comment lines are under 80 characters. No markdown code block delimiter. Eve
 ")
 ```
 
-
 ```{r}
 #Paso 1: Cargar las librerias necesarias para procesar datos y mapas
 library(sf)
 library(dplyr)
 library(readr)
+library(readxl)
+
 
 ```
-
 
 ```{r}
 # Paso 2: Definir las URLs oficiales del portal Buenos Aires Data
@@ -113,7 +113,6 @@ url_dgeyc <- "https://data.buenosaires.gob.ar/dataset/encuesta-anual-hogares/res
 
 ```
 
-
 ```{r}
 
 # Paso 3: Leer el archivo CSV directamente desde el portal oficial
@@ -125,14 +124,10 @@ barrios_sf <- read_sf(url_barrios)
 
 ```
 
-
 ```{r}
 
 
 ```
-
-
-
 
 ```{r}
 chattr("busca  datasets con datos socioeconomicos por barrio de la ciudad autonoma de buenos aires, y cargalos# Paso 1: Cargar las librerias para descarga y manipulacion de datos")
