@@ -1,0 +1,189 @@
+---
+title: "Tarea 2"
+author: "LSM"
+format: html
+editor: visual
+---
+
+## Quarto
+
+Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.
+
+## Running Code
+
+When you click the **Render** button a document will be generated that includes both content and the output of embedded code. You can embed code like this:
+
+```{r}
+1 + 1
+```
+
+You can add options to executable code like this
+
+```{r}
+#| echo: false
+2 * 2
+```
+
+The `echo: false` option disables the printing of code (only output is displayed).
+
+```{r librerias}
+library(rstac)   # cliente para catálogos STAC (búsqueda por metadatos)
+library(terra)   # lectura/análisis raster, con soporte nativo de /vsicurl/
+library(tmap)
+
+
+```
+
+```{r}
+bbox_aoi <- c(xmin = -58.29, ymin = -51.50, xmax = -58.25, ymax = -51.48)  
+# Base de Monte Agradable, Islas Malvinas 
+
+
+```
+
+```{r}
+
+catalogo <- stac("https://earth-search.aws.element84.com/v1")
+
+busqueda <- catalogo |>
+  stac_search(
+    collections = "sentinel-2-l2a",
+    bbox        = bbox_aoi, 
+    datetime    = "2026-01-29T00:00:00Z/2026-02-28T23:59:59Z",
+    limit       = 5
+  ) |>
+  post_request()
+
+cat("Escenas encontradas:", length(busqueda$features), "\n")
+stopifnot(length(busqueda$features) > 0) 
+
+nubosidad <- sapply(busqueda$features, function(f) f$properties$`eo:cloud_cover`)
+mejor_escena <- busqueda$features[[which.min(nubosidad)]]
+cat("Escena elegida:", mejor_escena$id,
+    "| nubosidad:", round(min(nubosidad), 1), "%\n")
+
+```
+
+```{r}
+href_red    <- mejor_escena$assets$red$href
+href_nir    <- mejor_escena$assets$nir$href
+href_visual <- mejor_escena$assets$visual$href
+
+r_red    <- rast(paste0("/vsicurl/", href_red))
+r_nir    <- rast(paste0("/vsicurl/", href_nir))
+r_visual <- rast(paste0("/vsicurl/", href_visual))   # 3 bandas: R, G, B
+
+```
+
+```{r}
+
+
+Sys.setenv(PROJ_LIB = "C:/Users/lucas/AppData/Local/R/win-library/4.6/terra/proj")
+library(terra)
+
+# Reconstruir el AOI con tus datos reales
+aoi_vect <- vect(ext(bbox_aoi["xmin"], bbox_aoi["xmax"],
+                     bbox_aoi["ymin"], bbox_aoi["ymax"]),
+                 crs = "EPSG:4326")
+
+aoi_utm <- project(aoi_vect, crs(r_red))
+
+# Verificación antes de seguir
+crs(aoi_utm, describe = TRUE)
+ext(aoi_utm)
+
+red    <- crop(r_red, aoi_utm)
+nir    <- crop(r_nir, aoi_utm)
+visual <- crop(r_visual, aoi_utm)
+
+plotRGB(visual, stretch = "lin")
+```
+
+```{r}
+ndvi <- (nir - red) / (nir + red)
+names(ndvi) <- "NDVI"
+```
+
+![](images/clipboard-1334385171.png)
+
+```{r}
+par(mfrow = c(1, 2))
+plotRGB(visual, r = 1, g = 2, b = 3, stretch = "lin",
+        main = paste("Imagen original -", mejor_escena$id))
+plot(ndvi, main = "NDVI", col = map.pal("viridis"))
+par(mfrow = c(1, 1))
+
+cat("\nListo. Se leyeron y procesaron unos pocos MB en vez de la escena",
+    "completa (~800 MB con las 13 bandas) gracias a COG + HTTP range requests.\n")
+```
+
+```{r}
+Sys.setenv(PROJ_LIB = "C:/Users/lucas/AppData/Local/R/win-library/4.6/terra/proj")
+library(terra)
+
+# Test mínimo, antes de meter todo el resto del script de vuelta
+aoi_vect <- vect(ext(-58.29, -58.25, -51.50, -51.48), crs = "EPSG:4326")
+crs(aoi_vect, describe = TRUE)
+```
+
+```{r}
+
+
+tmap_mode("plot")
+
+# Mapa 1: la imagen RGB
+mapa_rgb <- tm_shape(visual) +
+  tm_rgb(col = c(1, 2, 3)) +
+  tm_title(paste("Imagen original -", mejor_escena$id), size = 0.8)
+
+# Mapa 2: el NDVI
+mapa_ndvi <- tm_shape(ndvi) +
+  tm_raster(
+    col        = "NDVI",
+    col.scale  = tm_scale_continuous(values = "viridis"),
+    col.legend = tm_legend(title = "NDVI")
+  ) +
+  tm_title("NDVI", size = 0.8)
+
+
+tmap_arrange(mapa_rgb, mapa_ndvi, ncol = 2)
+
+```
+
+```{r}
+mapa_ndvi <- tm_shape(ndvi) +
+  tm_raster(
+    col        = "NDVI",
+    col.scale  = tm_scale_continuous(values = "viridis"),
+    col.legend = tm_legend(title = "NDVI")
+  ) +
+  tm_title("NDVI", size = 0.8)
+
+tmap_arrange(mapa_rgb, mapa_ndvi, ncol = 2)
+```
+
+```{r}
+mapa_rgb <- tm_shape(visual) +
+  tm_rgb(col = c("TCI_1", "TCI_2", "TCI_3")) +
+  tm_title(paste("Imagen original -", mejor_escena$id), size = 0.8)
+```
+
+```{r}
+mapa_rgb <- tm_shape(visual) +
+  tm_rgb(col = c("TCI_1", "TCI_2", "TCI_3"),
+         col.scale = tm_scale_rgb()) +
+  tm_title(paste("Imagen original -", mejor_escena$id), size = 0.8)
+
+print(mapa_rgb)
+```
+
+```{r}
+par(mfrow = c(1, 2))
+
+plotRGB(visual, stretch = "lin",
+        main = paste("Imagen original -", mejor_escena$id))
+
+plot(ndvi, main = "NDVI", col = map.pal("viridis"))
+
+par(mfrow = c(1, 1))
+```

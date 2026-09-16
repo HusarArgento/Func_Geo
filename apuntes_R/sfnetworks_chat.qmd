@@ -1,0 +1,141 @@
+---
+title: "Redes espaciales con sfnetworks"
+subtitle: "Notas de consolidación: creación de redes, node_key y geometría de edges"
+author: "Lucas"
+date: today
+format:
+  html:
+    toc: true
+    toc-depth: 2
+    code-fold: false
+    theme: cosmo
+execute:
+  eval: false
+---
+
+## Creación de una red "desde cero"
+
+Se parte de cuatro puntos y se arman tres líneas (edges) entre ellos, para después construir una red dirigida y una no dirigida con `sfnetwork()`.
+
+```{r}
+#| label: setup
+library(sf)
+library(sfnetworks)
+library(tidyverse)
+```
+
+```{r}
+#| label: puntos-y-lineas
+p1 <- st_point(c(7, 51))
+p2 <- st_point(c(7, 52))
+p3 <- st_point(c(8, 52))
+p4 <- st_point(c(8, 51.5))
+
+p <- st_sfc(p1, p2, p3, p4) |>
+  st_as_sf() |>
+  mutate(id = 1:n()) |>
+  ggplot() +
+  geom_sf() +
+  geom_sf_text(aes(label = id), nudge_x = 0.05) +
+  theme_void()
+p
+
+l1 <- st_sfc(st_linestring(c(p1, p2)))
+l2 <- st_sfc(st_linestring(c(p1, p4, p3)))
+l3 <- st_sfc(st_linestring(c(p3, p2)))
+
+p +
+  geom_sf(data = st_as_sf(l1), col = "tomato") +
+  geom_sf(data = st_as_sf(l2), col = "darkblue") +
+  geom_sf(data = st_as_sf(l3), col = "green")
+```
+
+```{r}
+#| label: construir-red
+edges <- st_as_sf(c(l1, l2, l3), crs = 4326)
+nodes <- st_as_sf(c(st_sfc(p1), st_sfc(p2), st_sfc(p3)), crs = 4326)
+
+edges$from <- c(1, 1, 3)
+edges$to <- c(2, 3, 2)
+
+# Red dirigida
+net <- sfnetwork(nodes, edges)
+net
+plot(net)
+
+# Red no dirigida
+net <- sfnetwork(nodes, edges, directed = FALSE)
+net
+```
+
+## Agregar atributos: ¿es solo un cambio de nombre?
+
+```{r}
+#| label: atributos
+nodes$name <- c("city", "village", "farm")
+nodes
+
+edges$from <- c("city", "city", "farm")
+edges$to <- c("village", "farm", "village")
+edges$transito <- c(10, 20, 30)
+edges
+```
+
+**No es solo un cambio de nombre.** Hay dos cosas distintas pasando:
+
+- En `nodes`: `name` es simplemente un **atributo descriptivo** nuevo. Los nodos se siguen identificando internamente por su índice de fila (1, 2, 3).
+- En `edges`: `transito` sí es solo un atributo nuevo (ej. peso de la red). Pero `from`/`to` cambian de **índices numéricos** a **strings con nombres de nodos** — esto cambia el *método de referencia* que usan los edges para apuntar a los nodos, de indexar por posición a indexar por nombre.
+
+Para que esa referencia por nombre funcione, `sfnetwork()` necesita poder matchear esos strings contra una columna de `nodes` — de ahí el paso siguiente. Además, si ya existía un objeto `net` construido antes de estos cambios, modificar `edges$from`/`edges$to` no actualiza la red automáticamente: hay que reconstruirla.
+
+## `node_key`: decirle a sfnetwork cómo matchear
+
+```{r}
+#| label: node-key
+net <- sfnetwork(nodes, edges, node_key = "name")
+```
+
+`node_key = "name"` le indica a `sfnetwork()`: en vez de usar el índice de fila de `nodes` para matchear con `edges$from`/`edges$to`, usar la columna `name` como clave de identificación de cada nodo.
+
+Sin este argumento, `sfnetwork()` espera por defecto que `from`/`to` sean índices numéricos (posición de fila). Como ahora son strings, sin `node_key` la función no podría relacionarlos correctamente con los nodos.
+
+Internamente, sfnetwork busca en `nodes$name` el valor correspondiente (ej. "city"), determina a qué fila pertenece, y arma el edge con esa fila. El grafo resultante funciona igual que antes por dentro (índices numéricos en tidygraph), pero ya no hace falta mantener la correspondencia índice↔nombre a mano. Es más robusto y legible cuando los nodos tienen identificadores naturales.
+
+## Geometría explícita vs. geometría reconstruida
+
+```{r}
+#| label: geometria-reconstruida
+st_geometry(edges) <- NULL
+
+other_net <- sfnetwork(nodes, edges, edges_as_lines = TRUE)
+```
+
+`st_geometry(edges) <- NULL` convierte `edges` de un objeto `sf` (con columna de geometría) a un data frame común, quedándose con `from`, `to`, `transito` pero sin la info espacial de por dónde pasa cada edge.
+
+`edges_as_lines = TRUE` hace que sfnetworks **genere automáticamente** la geometría de cada edge como una línea recta entre el nodo `from` y el nodo `to`, usando las coordenadas de `nodes`. Esto es distinto de la geometría original: por ejemplo `l2` iba de `p1` a `p4` a `p3` (con un punto intermedio, no recto), y esa forma se pierde al reconstruir — queda reemplazada por una geometría "implícita" derivada solo de la topología, no de un trazado real.
+
+```{r}
+#| label: comparacion-visual
+par(mfrow = c(1, 2))
+plot(net, cex = 2, lwd = 2, main = "Geometría original")
+plot(other_net, cex = 2, lwd = 2, main = "Geometría reconstruida")
+par(mfrow = c(1, 1))
+```
+
+- **Panel izquierdo** (`net`): las líneas originales, con el trazado real (ej. el edge `city → farm` dobla pasando por `p4`).
+- **Panel derecho** (`other_net`): todos los edges como líneas rectas entre nodo y nodo, sin importar el recorrido real.
+
+**Conclusión clave:** la topología (qué conecta con qué) es la misma en ambas redes; lo que cambia es la geometría (por dónde pasa cada conexión).
+
+## `from` / `to`: ¿nombre obligatorio o convención?
+
+Para **sfnetworks** (construido sobre **tidygraph**/**igraph**), las columnas de `edges` deben llamarse **exactamente `from` y `to`**. No es configurable con un argumento — `node_key` solo define qué columna de `nodes` se usa para matchear, no cambia los nombres esperados en `edges`.
+
+Si las columnas tuvieran otro nombre (ej. `origen`/`destino`), hay que renombrarlas antes:
+
+```{r}
+#| label: renombrar-ejemplo
+edges <- edges |> rename(from = origen, to = destino)
+```
+
+Es una convención fija de este ecosistema de paquetes (heredada de tidygraph/igraph), aunque bastante extendida en el análisis de redes en R en general (`igraph`, `tidygraph`, `ggraph`, `network`, que suelen usar `from`/`to` o `source`/`target`). De todas formas, cada paquete tiene su propia expectativa exacta — conviene chequear `?sfnetwork` en vez de asumir.
