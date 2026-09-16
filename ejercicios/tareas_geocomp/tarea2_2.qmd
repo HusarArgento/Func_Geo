@@ -1,0 +1,148 @@
+---
+title: "tarea2_2"
+author: "LSM"
+format: html
+editor: visual
+---
+
+## Quarto
+
+Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.
+
+## Running Code
+
+When you click the **Render** button a document will be generated that includes both content and the output of embedded code. You can embed code like this:
+
+```{r}
+1 + 1
+```
+
+You can add options to executable code like this
+
+```{r}
+#| echo: false
+2 * 2
+```
+
+```{r}
+install.packages("rgee")
+library(rgee)
+ee_Initialize()
+
+```
+
+```{r}
+cuencas <- ee$FeatureCollection(
+  "WWF/HydroSHEDS/v1/Basins/hybas_12"
+)
+
+
+```
+
+```{r}
+
+library(rgee)
+
+ee_clean_pyenv()
+ee_install()
+```
+
+```{r}
+library(reticulate)
+py_require("python==3.10")
+
+library(rgee)
+ee_install()
+```
+
+```{r}
+library(reticulate)
+py_require("python==3.10")
+
+library(rgee)
+ee_install()
+```
+
+```{r}
+library(reticulate)
+library(rgee)
+ee_install()
+```
+
+```{r}
+library(rgee)
+
+ee_check()
+```
+
+```{r}
+ee_clean_user_credentials()
+ee_Initialize()
+```
+
+```{r}
+rgee::ee_install_upgrade()
+```
+
+```{r}
+ee_Initialize()
+```
+
+```{r}
+# Dónde busca rgee las credenciales
+rgee::ee_get_earthengine_path()
+
+# Dónde las guardó realmente Python
+reticulate::py_run_string("import os; print(os.path.expanduser('~'))")
+```
+
+```{r}
+reticulate::py_run_string("import os; print(os.path.expanduser('~'))")
+
+list.files("C:/Users/lucas/.config/earthengine", recursive = TRUE, all.files = TRUE)
+
+usethis::edit_r_environ()
+```
+
+```{r}
+Sys.getenv("HOME")
+```
+
+```{r}
+rgee::ee_clean_user_credentials()
+library(rgee)
+ee_Initialize( project = "rgeeproj26")
+  ee_Initialize(email = "lucasaca79@gmail.com", project = "rgeeproj26")
+```
+
+```{r}
+library(reticulate)
+ee <- import("ee")
+ee$Authenticate()
+```
+
+```{r}
+ee_Initialize(email = "lucasaca79@gmail.com", project = "rgeeproj26")
+
+ee_Initialize(email = "lucasaca79@gmail.com", project = "rgeeproj26", drive = FALSE, gcs = FALSE)
+```
+
+```{r}
+library(rgee)
+
+# Verificar si rgee reconoce la sesión ya inicializada por Python
+ee_user_info()
+
+
+library(reticulate)
+ee <- import("ee")
+ee$Initialize(project = "rgeeproj26")
+
+library(rgee)
+library(sf)
+
+cuenca_sf <- st_read("ruta/a/tu_cuenca.shp")
+cuenca_ee <- sf_as_ee(cuenca_sf)
+
+print(cuenca_ee)
+```
