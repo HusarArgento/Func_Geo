@@ -1,0 +1,1346 @@
+---
+title: "Tmap"
+author: "LSM"
+format: html
+editor: visual
+---
+
+## Quarto
+
+Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.
+
+## Running Code
+
+When you click the **Render** button a document will be generated that includes both content and the output of embedded code. You can embed code like this:
+
+```{r}
+1 + 1
+```
+
+You can add options to executable code like this
+
+```{r}
+#| echo: false
+2 * 2
+```
+
+The `echo: false` option disables the printing of code (only output is displayed).
+
+
+## 1. ¿Qué es `tmap`?
+
+`tmap` es un paquete de R destinado a la **visualización y producción de mapas**.
+
+Su lógica se parece bastante a `ggplot2`.
+
+Pensalo así:
+
+```{text}
+sf
+│
+├── representa los datos espaciales
+│
+├── permite transformarlos
+│
+├── permite analizarlos
+│
+└── tmap
+      │
+      └── los convierte en un mapa legible
+```
+
+Esta distinción es fundamental.
+
+`sf` no es simplemente "para hacer mapas". Es fundamentalmente una estructura para **trabajar con datos espaciales**.
+
+`tmap`, en cambio, está orientado a **representar esos datos espacialmente**.
+
+Por ejemplo:
+
+```{r}
+library(sf)
+library(tmap)
+library(tidyverse)
+
+```
+
+Podrías tener:
+
+```{r}
+base_url <- paste("https://cdn.buenosaires.gob.ar",
+                     "datosabiertos/datasets", sep = "/")
+barrios <- st_read(paste(base_url, "ministerio-de-educacion", "comunas/comunas.geojson", sep = "/"))|>
+    st_transform(5347)
+
+
+```
+
+como un objeto `sf`.
+
+`tmap` toma ese objeto y decide cómo representarlo:
+
+```{r}
+
+tm_shape(barrios) +
+  tm_polygons()
+
+```
+
+Y aparece un mapa.
+---
+
+# 2. La idea fundamental: `tm_shape()`
+
+Esta es probablemente **la función más importante que tenés que entender primero**.
+
+La estructura básica es:
+
+```{r}
+tm_shape(objeto) +
+  ...
+```
+
+Por ejemplo:
+
+```{r}
+tm_shape(barrios) +
+  tm_polygons()
+```
+
+Lo que estamos diciendo conceptualmente es:
+
+> "Quiero construir un mapa utilizando `barrios` como capa espacial."
+
+Esto es muy parecido a:
+
+```{r}
+ggplot(barrios)
+```
+
+en `ggplot2`.
+
+Es decir:
+
+```{text}
+ggplot2                     tmap
+
+ggplot(datos)               tm_shape(datos)
+       ↓                           ↓
+geom_sf()                   tm_polygons()
+geom_point()                tm_symbols()
+geom_text()                 tm_text()
+```
+
+No son exactamente equivalentes, pero la analogía es útil para empezar.
+
+---
+
+# 3. `tm_polygons()`
+
+Si tu objeto contiene **polígonos**, normalmente vas a utilizar:
+
+```{r}
+tm_polygons()
+```
+
+Por ejemplo:
+
+```{r}
+tm_shape(barrios) +
+  tm_polygons()
+```
+
+Esto dibuja los polígonos.
+
+Pero acá empieza lo interesante.
+Un mapa no consiste simplemente en dibujar polígonos.
+
+Queremos que alguna **variable de los atributos** controle su representación.
+
+Supongamos que tenemos:
+
+```{text}
+barrio        poblacion
+Palermo       250000
+Caballito     180000
+Almagro       140000
+```
+
+Podemos decir:
+
+```{r}
+tm_shape(barrios) +
+  tm_polygons(fill = "poblacion")
+```
+
+
+```{r}
+pob <- read_csv2("data/gcba_pob_comunas_17.csv")
+```
+
+```{r}
+barrios2 <- inner_join(barrios, pob, by = c("id" ="COMUNA" ))|>
+  select(-comuna) |>
+  rename("poblacion" = "POBLACION")
+```
+
+
+Ahora `tmap` utiliza `poblacion` para determinar el relleno de cada polígono.
+
+```{r}
+tm_shape(barrios2) +
+  tm_polygons(fill = "poblacion")
+```
+
+
+Es decir:
+
+```{text}
+población
+    ↓
+variable visual
+    ↓
+color/intensidad del relleno
+    ↓
+mapa
+```
+
+Esto es **cartografía temática**.
+
+Y acá quiero que hagamos una pausa porque esto conecta directamente con lo que veníamos trabajando.
+
+---
+
+# 4. El concepto importante: variables visuales
+
+Cuando hacés:
+
+```{r}
+tm_polygons(fill = "poblacion")
+```
+
+no estás simplemente "poniendo colores".
+
+Estás diciendo:
+
+> La variable `poblacion` será representada mediante una variable visual.
+
+La variable de datos:
+
+```{r}
+poblacion
+```
+
+se transforma en una propiedad gráfica:
+
+```{text}
+más población → determinada intensidad
+menos población → otra intensidad
+```
+
+Esto es exactamente el tipo de decisión cartográfica que veníamos diciendo que tenías que aprender antes de obsesionarte con la función.
+
+---
+
+# 5. `fill`, `col`, `lwd`, etc.
+
+En `tmap` vas a encontrarte con varias **estéticas**.
+
+Por ejemplo:
+
+```{r}
+tm_polygons(
+  fill = "poblacion"
+)
+```
+
+controla el relleno.
+
+Podés controlar también el borde:
+
+```{r}
+tm_shape(barrios2) +
+tm_polygons(
+  fill = "poblacion",
+  col = "black"
+)
+```
+
+Y el ancho:
+
+```{r}
+tm_shape(barrios2) +
+tm_polygons(
+  fill = "poblacion",
+  col = "black",
+  lwd = 0.5
+)
+```
+
+Conceptualmente:
+
+```{text}
+tm_polygons()
+
+       ├── fill → relleno
+       ├── col  → borde
+       └── lwd  → ancho del borde
+```
+
+No memorices esto todavía. Lo importante es reconocer la lógica.
+
+---
+
+# 6. Una diferencia MUY importante: `fill =` no es lo mismo que `fill.scale`
+
+En versiones modernas de `tmap`, vas a encontrarte con una separación bastante clara entre:
+
+```{r}
+fill = "variable"
+```
+
+y la configuración de cómo se representa esa variable.
+
+Por ejemplo, conceptualmente:
+
+```{r}
+tm_shape(barrios2) + 
+  tm_polygons(
+  fill = "poblacion",
+  fill.scale = tm_scale_continuous()
+)
+```
+
+La primera pregunta es:
+
+> **¿Qué variable quiero representar?**
+
+La segunda:
+
+> **¿Cómo quiero convertir sus valores en una representación visual?**
+
+Esto es metodológicamente muy importante.
+
+No confundas:
+
+```{text}
+dato
+↓
+representación
+```
+
+con:
+
+```{text}
+variable
+↓
+estética
+```
+
+---
+
+# 7. ¿Y si tengo puntos?
+
+Supongamos que tenemos farmacias:
+
+```{r}
+farmacias <- st_read(paste(base_url, "ministerio-de-salud/farmacias/farmacias.geojson", sep = "/"))|>
+    st_transform(5347)
+
+
+```
+
+y es un objeto `sf` de puntos.
+
+No tiene sentido:
+
+```{r}
+tm_polygons()
+```
+
+porque no tenemos polígonos.
+
+Usaríamos:
+
+```{r}
+
+tm_shape(farmacias) +
+  tm_symbols()
+```
+
+Por ejemplo:
+
+```{r}
+tm_shape(farmacias) +
+  tm_symbols()
+```
+
+Ahora tenemos:
+
+```{text}
+sf POINT
+     ↓
+tm_symbols()
+     ↓
+símbolos sobre el mapa
+```
+
+---
+
+# 8. ¿Y líneas?
+
+Supongamos una red vial:
+
+```{r}
+calles <- st_read(paste(base_url, "/jefatura-de-gabinete-de-ministros/calles/callejero.geojson", sep = "/"))|>
+    st_transform(5347)
+
+```
+
+que contiene geometrías `LINESTRING`.
+
+Entonces:
+
+```{r}
+tm_shape(calles) +
+  tm_lines()
+```
+
+La correspondencia básica sería:
+
+| Geometría  | `tmap`          |
+| ---------- | --------------- |
+| POINT      | `tm_symbols()`  |
+| LINESTRING | `tm_lines()`    |
+| POLYGON    | `tm_polygons()` |
+
+Esto sí conviene tenerlo bastante incorporado.
+
+---
+
+# 9. Podemos superponer capas
+
+Acá `tmap` empieza a ponerse realmente interesante.
+
+Supongamos:
+
+```{text}
+barrios
+farmacias
+calles
+```
+
+Podemos construir:
+
+```{r}
+tm_shape(barrios) +
+  tm_polygons() +
+  
+tm_shape(calles) +
+  tm_lines() +
+  
+tm_shape(farmacias) +
+  tm_symbols()
+```
+
+El resultado conceptualmente es:
+
+```{text}
+              MAPA
+──────────────────────────
+
+   barrios       → fondo
+   calles        → líneas
+   farmacias     → puntos
+```
+
+Esto es exactamente lo que ya venís haciendo conceptualmente en QGIS.
+
+La diferencia es que ahora lo estás expresando mediante código.
+
+---
+
+# 10. Esto conecta con tu aprendizaje de `sf`
+
+Fijate la división del trabajo:
+
+### `sf`
+
+Decide:
+
+> ¿Qué geometrías tengo?
+
+> ¿Qué CRS tienen?
+
+> ¿Qué operaciones espaciales hago?
+
+> ¿Qué atributos poseen?
+
+> ¿Cómo uno estas capas?
+
+### `tmap`
+
+Decide:
+
+> ¿Cómo las comunico?
+
+> ¿Qué variable represento?
+
+> ¿Qué símbolo utilizo?
+
+> ¿Qué colores?
+
+> ¿Qué escala?
+
+> ¿Qué leyenda?
+
+Esta división es muy saludable para tu forma de trabajar.
+
+---
+
+# 11. Un ejemplo completo
+
+Supongamos que tenemos:
+
+```{r}
+barrios
+```
+
+con:
+
+```{text}
+nombre
+poblacion
+```
+
+Podríamos hacer:
+
+```{r}
+
+
+tm_shape(barrios2) +
+  tm_polygons(
+    fill = "poblacion"
+  )
+```
+
+Pero eso es apenas el comienzo.
+
+Podríamos agregar título:
+
+```{r}
+tm_shape(barrios2) +
+  tm_polygons(
+    fill = "poblacion"
+  ) +
+  tm_title("Población por barrio")
+```
+
+Y una leyenda:
+
+```{r}
+tm_shape(barrios2) +
+  tm_polygons(
+    fill = "poblacion",
+    fill.legend = tm_legend(
+      title = "Población"
+    )
+  ) +
+  tm_title("Población por barrio")
+```
+
+Acá ya estamos entrando en la construcción de una pieza cartográfica.
+
+---
+
+# 12. `tmap` tiene dos modos
+
+Esto es importante.
+
+`tmap` tradicionalmente tiene:
+
+```{r}
+tmap_mode("plot")
+```
+
+y
+
+```{r}
+tmap_mode("view")
+```
+
+### `plot`
+
+Produce un mapa estático.
+
+```{r}
+tmap_mode("plot")
+```
+
+Pensalo como:
+
+> **cartografía para publicar**
+
+PDF, PNG, informe, Quarto, etc.
+
+---
+
+### `view`
+
+Produce un mapa interactivo:
+
+```{r}
+tmap_mode("view")
+```
+
+Pensalo como:
+
+> **cartografía para explorar**
+
+Podés hacer zoom, desplazarte, interactuar con objetos, etc.
+
+Entonces:
+
+```{text}
+plot
+↓
+mapa estático
+
+view
+↓
+mapa interactivo
+```
+
+Esto es particularmente útil para vos porque después podemos comparar `tmap` con `leaflet`.
+
+---
+
+# 13. ¿Por qué `tmap` te va a resultar cómodo?
+
+Porque su sintaxis es bastante declarativa.
+
+Por ejemplo:
+
+```{r}
+tm_shape(barrios2) +
+  tm_polygons(fill = "poblacion")
+```
+
+se puede leer casi como una frase:
+
+> "Mapear barrios como polígonos y utilizar población para el relleno."
+
+Eso es una característica que me interesa especialmente en tu caso.
+
+Vos tendés a pensar primero:
+
+> ¿Qué quiero representar?
+
+y después:
+
+> ¿Cómo lo implemento?
+
+`tmap` acompaña bastante bien ese proceso.
+
+---
+
+# 14. Pero cuidado: `tmap` NO decide si tu mapa está bien
+
+Este es uno de los puntos que quiero que quede muy claro.
+
+Supongamos que tenés:
+
+```{r}
+tm_polygons(fill = "poblacion")
+```
+
+El código funciona perfectamente.
+
+Eso **no significa que el mapa sea metodológicamente correcto**.
+
+Por ejemplo, si estás comparando población entre barrios, quizás necesitás población absoluta.
+
+Pero si querés comparar **densidad poblacional**, deberías utilizar:
+
+```{text}
+población / superficie
+```
+
+y no:
+
+```{text}
+población
+```
+
+Entonces podrías tener un mapa técnicamente perfecto y conceptualmente malo.
+
+Esto es exactamente el criterio que venimos usando en el laboratorio:
+
+> **que el código corra no demuestra que el análisis sea correcto.**
+
+
+
+---
+
+# 15. Y acá aparece la verdadera cartografía
+
+Imaginemos:
+
+```{r}
+tm_polygons(fill = "ingreso")
+```
+
+La pregunta técnica es:
+
+> ¿Cómo lo hago?
+
+La pregunta cartográfica es:
+
+> **¿Qué quiero que el lector vea?**
+
+Y la pregunta metodológica es:
+
+> **¿La representación elegida permite interpretar correctamente el fenómeno?**
+
+Son tres niveles diferentes:
+
+```{text}
+R
+│
+├── ¿funciona?
+│
+CARTOGRAFÍA
+│
+├── ¿se entiende?
+│
+ANÁLISIS
+│
+└── ¿representa correctamente el fenómeno?
+```
+
+# 17. Cómo quiero que aprendamos `tmap`
+
+No te recomiendo estudiar ahora:
+
+> "50 funciones de tmap."
+
+Sería exactamente el tipo de aprendizaje que venimos tratando de evitar.
+
+Prefiero que construyamos el lenguaje en capas.
+
+### Nivel 1 — geometría
+
+```{r}
+tm_shape()
+```
+
+### Nivel 2 — representación
+
+```{r}
+tm_polygons()
+tm_symbols()
+tm_lines()
+tm_text()
+```
+
+### Nivel 3 — variables
+
+```{r}
+fill =
+size =
+col =
+```
+
+### Nivel 4 — leyendas y escalas
+
+```{r}
+tm_legend()
+tm_scale_*
+```
+
+### Nivel 5 — composición
+
+```{r}
+tm_title()
+tm_layout()
+```
+
+### Nivel 6 — interacción
+
+```{r}
+tmap_mode("view")
+```
+
+Y recién después nos metemos con cuestiones más avanzadas.
+
+---
+
+# 18. El ejercicio que te propongo
+
+
+```r
+barrios
+```
+
+y que contiene:
+
+```{text}
+BARRIO
+POBLACION
+SUPERFICIE
+```
+
+Tu cliente te dice:
+
+> **"Quiero un mapa que permita identificar rápidamente qué barrios tienen mayor densidad poblacional."**
+
+Antes de tocar R, quiero que respondas:
+
+### 1. ¿Cuál es la variable que realmente queremos representar?
+
+No necesariamente `POBLACION`.
+
+### 2. ¿Qué operación tendríamos que hacer antes?
+
+### 3. ¿Qué geometría tenemos?
+
+### 4. ¿Qué función de `tmap` usaríamos?
+
+### 5. ¿Qué estética visual utilizaríamos?
+
+Y recién después escribimos el código.
+
+```{r}
+barrios2 <- barrios2 |>
+  mutate(densidad = (poblacion / area) *100
+  )
+
+```
+
+```{r}
+
+tm_shape(barrios2) +
+  tm_polygons(
+    fill = "densidad",
+    fill.scale = tm_scale_continuous(values = "viridis"),
+    fill.legend = tm_legend(
+      title = "Densidad Poblacional"
+    )
+  ) +
+  tm_title("Densidad poblacional por barrio")
+
+```
+**`fill.scale` es la parte de `tmap` que controla cómo se transforma una variable numérica o categórica en una escala visual de relleno**.
+
+La distinción clave es esta:
+
+```{r}
+tm_polygons(
+  fill = "poblacion"
+)
+```
+
+dice:
+
+> **¿Qué variable voy a representar?**
+> → `poblacion`
+
+Mientras que:
+
+```{r}
+fill.scale = ...
+```
+
+dice:
+
+> **¿Cómo voy a convertir los valores de `poblacion` en colores?**
+
+---
+
+## Un ejemplo
+
+Supongamos:
+
+```{r}
+tm_shape(barrios) +
+  tm_polygons(
+    fill = "poblacion"
+  )
+```
+
+`tmap` recibe algo así:
+
+```{text}
+Población
+────────────
+50.000
+100.000
+150.000
+200.000
+250.000
+```
+
+y necesita convertir esos números en una representación visual:
+
+```{text}
+50.000   → color claro
+100.000  → ...
+150.000  → ...
+200.000  → ...
+250.000  → color oscuro
+```
+
+Ese mecanismo es la **escala de relleno**.
+
+---
+
+# ¿Dónde aparece `fill.scale`?
+
+Por ejemplo:
+
+```{r}
+tm_shape(barrios) +
+  tm_polygons(
+    fill = "poblacion",
+    fill.scale = tm_scale_continuous()
+  )
+```
+
+Acá estamos diciendo:
+
+> `poblacion` controla el relleno y quiero utilizar una escala continua.
+
+Esto tiene sentido porque población es una variable cuantitativa.
+
+---
+
+# Pero acá aparece algo importante
+
+No todas las variables deberían representarse de la misma manera.
+
+Imaginemos:
+
+### Caso A
+
+```{text}
+poblacion
+50.000
+80.000
+120.000
+180.000
+250.000
+```
+
+Es una variable **continua**.
+
+Entonces:
+
+```{r}
+fill.scale = tm_scale_continuous()
+```
+
+puede ser apropiado.
+
+---
+
+### Caso B
+
+Tenemos:
+
+```{text}
+nivel_socioeconomico
+
+bajo
+medio
+alto
+```
+
+Acá no tenemos una variable numérica continua.
+
+Tenemos **categorías**.
+
+Entonces la escala debería ser categórica:
+
+```{r}
+fill.scale = tm_scale_categorical()
+```
+
+---
+
+# Entonces hay dos preguntas diferentes
+
+Esto es lo que quiero que te quede grabado:
+
+```{r}
+fill = "poblacion"
+```
+
+responde:
+
+> **¿Qué dato?**
+
+Mientras:
+
+```{r}
+fill.scale = ...
+```
+
+responde:
+
+> **¿Cómo lo represento?**
+
+Es una separación muy importante.
+
+---
+
+## ¿Y qué podemos controlar con `fill.scale`?
+
+Entre otras cosas:
+
+* si la escala es continua o categórica;
+* los límites de la escala;
+* cómo se dividen los valores;
+* los colores utilizados;
+* determinados métodos de clasificación.
+
+Por ejemplo, una escala continua puede trabajar conceptualmente así:
+
+```{text}
+valor mínimo
+     ↓
+ ┌───────────┐
+ │           │
+ │   escala  │
+ │  continua │
+ │           │
+ └───────────┘
+     ↓
+valor máximo
+```
+
+Mientras que una clasificación puede dividir los datos:
+
+```{text}
+0 ───── 50
+50 ─── 100
+100 ── 150
+150 ── 200
+```
+
+y asignar un color a cada intervalo.
+
+---
+
+# Esto último es MUY importante en cartografía
+
+Supongamos que tenés estos valores:
+
+```{text}
+Barrio A → 10
+Barrio B → 12
+Barrio C → 15
+Barrio D → 80
+Barrio E → 95
+```
+
+Podés representar esto mediante una escala continua.
+
+Pero también podés clasificar:
+
+```{text}
+10–30   → categoría 1
+31–60   → categoría 2
+61–100  → categoría 3
+```
+
+El mapa resultante puede ser bastante diferente.
+
+Y acá aparece nuevamente la diferencia entre **hacer que el código funcione** y **tomar una decisión cartográfica correcta**.
+
+La escala no es decoración.
+
+La escala modifica la manera en que el lector percibe la distribución espacial del fenómeno.
+
+---
+
+
+```{text}
+fill
+ ↓
+qué variable
+
+fill.scale
+ ↓
+cómo convertir esa variable en una escala visual
+```
+
+Esta analogía te va a servir bastante.
+
+---
+
+### Y una precisión
+
+No quiero que empieces todavía a memorizar cosas como:
+
+```{r}
+tm_scale_continuous()
+tm_scale_categorical()
+tm_scale_intervals()
+```
+
+Primero quiero que entiendas **la arquitectura**:
+
+> **dato → variable visual → escala → mapa**
+
+Después aprendemos las funciones concretas.
+
+Ese orden es bastante más importante que aprenderse de memoria la sintaxis de `tmap`.
+
+El argumento `fill.scale` en `tm_polygons()` de **tmap** no tiene opciones directas como "sí" o "no". En su lugar, su función principal es **recibir una función de escala** (de la familia `tm_scale_*()`) que define cómo se mapean los datos a los colores de relleno .
+
+Aquí te explico cómo funciona y las opciones principales que tienes para configurarlo.
+
+### La función de `fill.scale` es elegir una escala
+
+El argumento `fill.scale` se usa para asignar una de las funciones `tm_scale_*()`, que son las que realmente contienen las opciones. El tipo de función que elijas dependerá de la naturaleza de tus datos (numéricos, categóricos, etc.) .
+
+### Principales opciones de escalas (`tm_scale_*`)
+
+Estas son las funciones más comunes que puedes pasar a `fill.scale` :
+
+```{text}
+tm_scale_intervals()` |Numéricos|  
+Divide los datos en clases o intervalos (ej. de 0 a 10, 10 a 20). Puedes controlar el número de clases con `n=` y el método para crearlas con `style=` (ej. "fisher", "quantile") 
+
+tm_scale_continuous()` |Numéricos | 
+Crea una escala de color continua y suave (un gradiente). Ideal para ver tendencias .
+
+tm_scale_categorical()` | Categóricos (sin orden)| 
+Asigna un color distinto a cada categoría, sin implicar un orden entre ellas . |
+
+tm_scale_ordinal()` | Categóricos (con orden)| 
+Similar a la anterior, pero útil cuando tus categorías tienen un orden natural (ej. "Bajo", "Medio", "Alto") . |
+
+```
+
+
+**Ejemplo de uso:**
+
+
+```{r}
+library(tmap)
+
+# Para una variable numérica, usando una escala por intervalos
+tm_shape(World) +
+  tm_polygons(
+    fill = "HPI", # Variable numérica
+    fill.scale = tm_scale_intervals(n = 5, style = "quantile")
+  )
+
+# Para una variable categórica
+tm_shape(World) +
+  tm_polygons(
+    fill = "economy",
+    fill.scale = tm_scale_categorical()
+  )
+```
+
+### Argumentos comunes dentro de cada escala
+
+Independientemente de la función `tm_scale_*()` que uses, todas comparten una serie de argumentos clave para personalizar el resultado :
+
+```{text}
+*   `values`: Define los colores o la paleta a usar. Puedes poner el nombre de una paleta de la librería `cols4all` (ej. "Reds", "viridis") o una lista de colores .
+*   `value.na`: Color que se usará para los valores faltantes (`NA`) en tus datos .
+
+*   `value.neutral`: Un valor "neutral" que se usa en las leyendas cuando combinas varias variables visuales (ej. `fill` y `size` en `tm_symbols()`). Por ejemplo, si usas tamaño y color, los ítems de la leyenda de tamaño usarán el color neutral definido en `fill.scale` .
+
+*   `labels`: Permite personalizar las etiquetas que aparecerán en la leyenda .
+
+*   `label.na`: Etiqueta para los valores faltantes en la leyenda .
+```
+
+
+### Resumen
+
+En lugar de buscar "opciones" directas para `fill.scale`, lo que debes hacer es **elegir la función de escala correcta** (`tm_scale_intervals`, `tm_scale_continuous`, etc.) y luego ajustar sus argumentos para controlar cómo se asignan los colores.
+
+Si puedes compartir el tipo de datos que estás mapeando (numéricos continuos, numéricos por rangos o categóricos), puedo ayudarte a afinar más la función de escala que mejor se ajuste.
+
+---
+
+## ¿Qué es Viridis?
+
+**Viridis** es una paleta de colores diseñada para:
+- Ser **perceptualmente uniforme** (los cambios en color representan cambios reales en los datos).
+- Ser **amigable para daltónicos** (funciona bien en visión de colores reducida).
+- Mantener **buena legibilidad** en blanco y negro.
+
+---
+
+## Sintaxis básica
+
+```{r}
+library(ggplot2)
+library(viridis)  # o library(viridisLite)
+
+scale_fill_viridis_c(
+  option = "viridis",  # Paleta específica
+  direction = 1,       # 1 = normal, -1 = invertida
+  begin = 0,           # Punto de inicio (0 a 1)
+  end = 1,             # Punto final (0 a 1)
+  ...                  # Otros argumentos de scale_fill_gradientn()
+)
+```
+
+---
+
+## Los 5 tipos de paletas Viridis (argumento `option`)
+
+| Opción | Nombre | Característica |
+|--------|--------|----------------|
+| `"viridis"` | Viridis | Azul-verde-amarillo  |
+| `"magma"` | Magma | Púrpura-rojo-amarillo |
+| `"inferno"` | Inferno | Negro-rojo-amarillo |
+| `"plasma"` | Plasma | Púrpura-rojo-amarillo contraste) |
+| `"cividis"` | Cividis | Azul-amarillo ( daltónicos) |
+
+---
+
+## Ejemplos prácticos
+
+### 1. Uso básico en ggplot2
+
+```r
+library(ggplot2)
+
+# Datos de ejemplo
+df <- data.frame(
+  x = rnorm(100),
+  y = rnorm(100),
+  z = rnorm(100)
+)
+
+# Gráfico de puntos con color continuo (Viridis)
+ggplot(df, aes(x, y, color = z)) +
+  geom_point(size = 3) +
+  scale_color_viridis_c()  # Para color (no fill)
+  # scale_fill_viridis_c() se usa con fill
+```
+
+### 2. Con un mapa (tm_shape o ggplot)
+
+```r
+# Con ggplot2 + mapa
+library(sf)
+library(viridis)
+
+ggplot(data = barrios2) +
+  geom_sf(aes(fill = densidad)) +
+  scale_fill_viridis_c(
+    option = "magma",      # Cambia a magma
+    direction = -1,        # Invierte colores
+    name = "Densidad\n(hab/km²)"
+  ) +
+  theme_minimal()
+```
+
+### 3. Diferencias entre las opciones
+
+```r
+library(gridExtra)
+
+p1 <- ggplot(df, aes(x, y, color = z)) + geom_point() + 
+  scale_color_viridis_c(option = "viridis") + ggtitle("Viridis")
+
+p2 <- ggplot(df, aes(x, y, color = z)) + geom_point() + 
+  scale_color_viridis_c(option = "magma") + ggtitle("Magma")
+
+p3 <- ggplot(df, aes(x, y, color = z)) + geom_point() + 
+  scale_color_viridis_c(option = "plasma") + ggtitle("Plasma")
+
+grid.arrange(p1, p2, p3, nrow = 1)
+```
+
+---
+
+## Comparación con otras funciones similares
+
+| Función | Tipo de datos | Paquete | Cuándo usarla |
+|---------|---------------|---------|---------------|
+| `scale_fill_viridis_c()` | **Continuos** | ggplot2 + viridis | Variables numéricas con gradiente |
+| `scale_fill_viridis_d()` | **Discretos** | ggplot2 + viridis | Categorías o variables discretas |
+| `scale_fill_viridis_b()` | **Binned** | ggplot2 + viridis | Variables numéricas agrupadas en bins |
+| `scale_fill_gradient()` | Continuos | ggplot2 | Con paletas personalizadas |
+| `scale_fill_gradientn()` | Continuos | ggplot2 | Con múltiples colores personalizados |
+
+---
+
+## Ejemplo específico para tu mapa de densidad
+
+Si ya tienes `barrios2` con la columna `densidad`:
+
+```r
+library(ggplot2)
+library(sf)
+
+ggplot(barrios2) +
+  geom_sf(aes(fill = densidad)) +
+  scale_fill_viridis_c(
+    option = "plasma",           # Una opción más contrastante
+    name = "Densidad\n(hab/km²)",
+    labels = scales::comma,      # Formato con separadores de miles
+    breaks = c(0, 5000, 10000, 15000)  # Puntos específicos en leyenda
+  ) +
+  theme_void() +
+  labs(title = "Densidad poblacional por barrio")
+```
+
+---
+
+## Argumentos útiles para personalizar
+
+```r
+scale_fill_viridis_c(
+  option = "viridis",       # Paleta
+  direction = -1,           # Invertir colores (alto = claro, bajo = oscuro)
+  begin = 0.2,              # Empezar en el 20% de la paleta
+  end = 0.8,                # Terminar en el 80%
+  alpha = 0.8,              # Transparencia (0 a 1)
+  na.value = "grey50",      # Color para valores NA
+  name = "Mi leyenda",      # Título de leyenda
+  limits = c(0, 20000),     # Rango de datos mapeados
+  trans = "log"             # Transformación de escala ("log", "sqrt", etc.)
+)
+```
+
+---
+
+## Si usas tmap en lugar de ggplot
+
+En tmap, el equivalente sería:
+
+```r
+library(tmap)
+
+tm_shape(barrios2) +
+  tm_polygons(
+    fill = "densidad",
+    fill.scale = tm_scale_continuous(
+      values = "plasma",  # ¡Aquí usas el nombre de la paleta!
+      labels = scales::comma
+    ),
+    fill.legend = tm_legend(title = "Densidad (hab/km²)")
+  )
+```
+
+---
+
+## Resumen
+
+- `scale_fill_viridis_c()` es para **ggplot2** y variables **continuas**.
+- Tiene 5 paletas principales (`viridis`, `magma`, `inferno`, `plasma`, `cividis`).
+- Es **excelente** para mapas porque es perceptualmente uniforme y amigable para daltónicos.
+- En **tmap**, usas `tm_scale_continuous(values = "plasma")` como equivalente.
+
+¿Necesitas ayuda para ajustar colores específicos para tu mapa de densidad? ¡Cuéntame más sobre tus datos! 🗺️

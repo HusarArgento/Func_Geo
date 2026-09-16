@@ -1,0 +1,70 @@
+---
+title: "tarea1"
+format: html
+editor: visual
+---
+
+## Quarto
+
+Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.
+
+## Running Code
+
+When you click the **Render** button a document will be generated that includes both content and the output of embedded code. You can embed code like this:
+
+```{r}
+1 + 1
+```
+
+You can add options to executable code like this
+
+```{r}
+#| echo: true
+2 * 2
+```
+
+The `echo: false` option disables the printing of code (only output is displayed).
+
+```{r}
+
+
+
+```
+
+```{r}
+chattr("Busca en el sitio buenos aires data un mapa de las comunas de buenos aires, en formato geojson y descargalo")
+
+url_geojson <- "https://cdn.buenosaires.gob.ar/datosabiertos/datasets/ministerio-de-educacion/comunas/comunas.geojson"
+
+download.file(url_geojson, destfile = "comunas_caba.geojson")
+
+comunas_sf <- read_sf("comunas_caba.geojson")
+```
+
+```{r}
+
+#Descarga ela rchivo porque read_xlsx no lee directo del enlace. 
+
+url_datos <- "https://www.estadisticaciudad.gob.ar/eyc/wp-content/uploads/2019/07/PMD19_8.xlsx"
+
+download.file(
+  url_datos,
+  destfile = "D:/DATOS-HHD/Proyectos R/UNIPE_Geocomputacion_2026/Practicos/Clase1/tareas/PMD19_8.xlsx",
+  mode = "wb",
+  method = "libcurl"
+)
+
+#Lectura y transformacion en dataset (agregar sheet cuando es xlsx de varias paginas)
+datos <- read_xlsx("D:/DATOS-HHD/Proyectos R/UNIPE_Geocomputacion_2026/Practicos/Clase1/tareas/PMD19_8.xlsx"
+  )
+datos2021 <- read_xlsx(
+  "D:/DATOS-HHD/Proyectos R/UNIPE_Geocomputacion_2026/Practicos/Clase1/tareas/PMD19_8.xlsx",
+  sheet = "2021"
+)
+
+
+```
+
+```{r}
+
+```
