@@ -57,11 +57,79 @@ nodes <- data.frame(
 
 edges <- data.frame (
   from  =  c(1, 1, 1, 2, 3, 4 ),   
-  to  = c (2, 3, 4, 3, 5, 5),   
-  distance = c (5, 8, 4. 3, 6, 2
-                )
+  to  = c (2, 3, 4, 3, 5, 5)
 )
+
+edges$distance <- c (5, 8, 4, 3, 6, 2)
 
 igraph::degree(net)
 #Para cada nodo ¿cuantas conexiones tiene?
+```
+
+```{r}
+
+
+g <- graph_from_data_frame(
+  d = edges,
+  vertices = nodes,
+  directed = FALSE
+)
+g
+
+```
+
+```{r}
+degree(g)
+components(g)
+components(g)$no
+edges$distance
+  
+
+shortest_paths(
+  g,
+  from = "parque_rivadavia",
+  to = "club_ferro",
+  weights = E(g)$distance
+)
+#El camino mas corto en distancia
+
+distances(
+  g,
+  v = "parque_rivadavia",
+  to = "club_ferro",
+  weights = E(g)$distance
+)
+#Cuanto cuesta en distancia llegar
+
+distances(
+  g,                          #sobre que grafo
+  weights = E(g)$distance     #que costo usar
+)
+#Calculá, para los nodos de g, la distancia mínima entre ellos, usando distance como peso de las aristas.
+
+
+shortest_paths(
+  g,
+  from = "primera_junta",
+  to = "est_primera_junta",
+  weights = E(g)$distance
+)
+```
+
+```{text}
+
+GRAFO
+ │
+ ├── degree()
+ │      └── ¿cuántas conexiones tiene cada nodo?
+ │
+ ├── components()
+ │      └── ¿cuántos componentes conexos hay?
+ │
+ ├── distances()
+ │      └── ¿cuál es el costo mínimo entre nodos?
+ │
+ └── shortest_paths()
+        └── ¿por qué nodos pasa ese camino mínimo?
+
 ```
