@@ -62,8 +62,7 @@ edges <- data.frame (
 
 edges$distance <- c (5, 8, 4, 3, 6, 2)
 
-igraph::degree(net)
-#Para cada nodo ¿cuantas conexiones tiene?
+
 ```
 
 ```{r}
@@ -132,4 +131,10 @@ GRAFO
  └── shortest_paths()
         └── ¿por qué nodos pasa ese camino mínimo?
 
+```
+
+```{r}
+closeness(g, weights = E(g)$distance)
+#Qué tan cerca está un nodo del resto de la red, considerando las distancias mínimas
+#menor suma de distancias → mayor cercanía al resto de la red.
 ```
