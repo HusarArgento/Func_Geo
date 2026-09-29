@@ -5,13 +5,6 @@ format: html
 editor: visual
 ---
 
-## Quarto
-
-Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.
-
-## Running Code
-
-When you click the **Render** button a document will be generated that includes both content and the output of embedded code. You can embed code like this:
 
 ```{r}
 1 + 1
@@ -100,9 +93,14 @@ distances(
 )
 #Cuanto cuesta en distancia llegar
 
-distances(
-  g,                          #sobre que grafo
-  weights = E(g)$distance     #que costo usar
+
+```
+
+```{r}
+
+```
+
+```{#que costo usar}
 )
 #Calculá, para los nodos de g, la distancia mínima entre ellos, usando distance como peso de las aristas.
 
@@ -138,3 +136,185 @@ closeness(g, weights = E(g)$distance)
 #Qué tan cerca está un nodo del resto de la red, considerando las distancias mínimas
 #menor suma de distancias → mayor cercanía al resto de la red.
 ```
+
+```{r}
+betweenness(
+  g,
+  weights = E(g)$distance, #No consideres que todas las conexiones cuestan lo mismo. Utilizá la variable distance que está guardada en las aristas."
+  directed = FALSE #Las conexiones pueden recorrerse en ambos sentidos."
+)
+#Cantidad de intermediaciónes. Centralidad de intermediación
+
+
+```
+
+```{text}
+
+                 Primera Junta
+                 /           \
+                /5            \3
+               /               \
+Parque Rivadavia ----8---- Est. Acoyte
+       |                         |
+      4|                         |6
+       |                         |
+Est. Primera Junta ----2---- Club Ferro
+
+```
+
+```{r}
+
+shortest_paths(
+  g,
+  from = "parque_rivadavia",
+  to = "club_ferro",
+  weights = E(g)$distance
+)
+
+```
+
+```{r}
+distances(
+  g,
+  v = "parque_rivadavia",
+  to = "club_ferro",
+  weights = E(g)$distance
+)
+```
+
+```{r}
+all_shortest_paths(
+  g,
+  from = "parque_rivadavia",
+  to = "est_acoyte",
+  weights = E(g)$distance
+)
+```
+
+```{r}
+distances(
+  g, 
+  weights = E(g)$distance 
+)
+```
+
+
+```{r}
+degree(
+  g)
+
+```
+
+
+```{r}
+closeness(
+  g,
+  weights = E(g)$distance
+)
+```
+
+
+```{r}
+distances(
+  g,
+  v = "parque_rivadavia",
+  weights = E(g)$distance
+)
+```
+
+```{r}
+comp <- igraph::components(g) #componentes de la red
+comp$membership |> table() #agarra los componentes del elemento membership perteneciente a comp y haceme una tabla
+```
+
+```{r}
+net <- net |>
+  activate("nodes") |>
+  mutate(component = factor(comp$membership))
+#factor convierte en variables cawtegoricas que sirven par graficar
+```
+
+
+```{r}
+net |>
+  activate("edges") |>
+  mutate(weight = edge_length()) #la longitud geométrica de cada arista
+
+#Edge 1 → 500 m
+#Edge 2 → 300 m
+#Edge 3 → 800 m
+
+
+```
+
+```{text}
+| edge | longitud | weight |
+| ---- | -------: | -----: |
+| A–B  |    500 m |    500 |
+| A–C  |    300 m |    300 |
+| B–C  |    800 m |    800 |
+
+
+```
+
+```{r}
+
+mutate(bc = centrality_betweenness(weights = weight, directed = FALSE))
+```
+
+```{text}
+
+betweenness mide cuántas veces un nodo queda en el camino más corto entre otros nodos. Pero hay una precisión importante: qué entendemos por “camino más corto” depende del peso de las aristas.
+
+Ahí entra la longitud.
+
+En tu ejercicio anterior
+
+Vos tenías:
+
+Parque Rivadavia → Primera Junta = 5
+Primera Junta → Acoyte = 3
+Parque Rivadavia → Acoyte = 8
+
+Entonces, para ir de Parque Rivadavia a Acoyte hay dos caminos:
+
+Parque ──8── Acoyte
+
+o
+
+Parque ──5── Primera Junta ──3── Acoyte
+
+Los dos cuestan:
+
+8 = 8
+
+Por eso dijimos que Primera Junta participa en 0,5 de los caminos mínimos: hay dos caminos mínimos y Primera Junta está en uno.
+
+¿Qué cambia si usamos la longitud?
+
+Supongamos ahora:
+
+Parque ──8 km── Acoyte
+
+Parque ──5 km── Primera Junta ──3 km── Acoyte
+
+La lógica es la misma.
+
+Pero imaginá que las longitudes fueran:
+
+Parque ──8 km── Acoyte
+
+Parque ──5 km── Primera Junta ──2 km── Acoyte
+
+Entonces:
+
+directo = 8 km
+pasando por Primera Junta = 7 km
+
+El camino mínimo obligatoriamente pasa por Primera Junta.
+
+Por lo tanto, para ese par de nodos, Primera Junta recibe 1 de contribución al betweenness.
+
+
+```
+
