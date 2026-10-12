@@ -1,0 +1,291 @@
+---
+title: "Grafo 2"
+format: html
+editor: visual
+---
+
+## Quarto
+
+Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.
+
+## Running Code
+
+When you click the **Render** button a document will be generated that includes both content and the output of embedded code. You can embed code like this:
+
+```{r}
+1 + 1
+```
+
+You can add options to executable code like this
+
+```{r}
+#| echo: false
+2 * 2
+```
+
+The `echo: false` option disables the printing of code (only output is displayed).
+
+```{r librerias}
+
+library(tidyverse)
+
+library(dbscan)
+
+library(sf)
+library(geos)
+
+library(igraph)
+library(tidygraph)
+
+library(sfnetworks)
+
+library(osmdata)
+
+library(mapview)
+
+library(leaflet)
+
+library(tmap)
+
+```
+
+#Caso 1: Caballito
+
+```{r sources}
+base_url <- paste("https://cdn.buenosaires.gob.ar",
+                  "datosabiertos/datasets", sep = "/")
+
+CABALLITO <- paste(base_url,
+                   "ministerio-de-educacion",
+                   "comunas/comunas.geojson", sep = "/") |>
+  st_read()  |>
+  st_transform(5347) |>
+  filter(comuna == 6)
+
+tm_shape(CABALLITO) +
+  tm_polygons()
+
+
+
+```
+
+```{r operaciones}
+CABALLITO_buffer <- CABALLITO |>
+  st_buffer(750) # Buffer de 750 metros
+
+CALLE <- paste(base_url,
+               "jefatura-de-gabinete-de-ministros",
+               "calles/callejero.geojson", sep = "/") |> #Callejero
+  st_read() |>
+  st_transform(5347) |>
+  st_intersection(CABALLITO_buffer) #Intersección buffer  y callejero
+
+table(CALLE$sentido)
+
+CALLE <- CALLE |>
+  filter(sentido %in% c("CRECIENTE", "DECRECIENTE","DOBLE") ) #FIltrado 
+
+CALLE_aux1 <- CALLE |> filter(sentido %in% c("DECRECIENTE","DOBLE") ) |> mutate(cod_edge = -1) |> st_reverse()
+CALLE_aux2 <- CALLE |> filter(sentido %in% c("CRECIENTE", "DOBLE") ) |> mutate(cod_edge = 1) #separacion y filtrado de calles crecientesy decrecientes (+ dobles) con codificacion segun sentido (1 y -1)
+
+CALLE2 <- rbind(CALLE_aux1, CALLE_aux2)
+
+table(CALLE$sentido)
+table(ORIG = CALLE2$sentido, EDGE = CALLE2$cod_edge)
+table(CALLE2$cod_edge)
+
+CALLE2 |> filter(id == 11018) |> st_geometry()
+
+net1 <- as_sfnetwork(CALLE2, directed = TRUE,
+                     length_as_weight = TRUE)
+
+plot(net1)
+```
+
+```{r graficos}
+
+plot(st_geometry(net1, "edges"))
+plot(st_geometry(net1, "nodes"), add = TRUE, pch = 20, col = "red")
+
+library(ggplot2)
+
+ggplot() +
+  geom_sf(data = st_as_sf(net1, "edges"), color = "grey40") +
+  geom_sf(data = st_as_sf(net1, "nodes"), color = "red", size = 0.5) +
+  theme_minimal()
+
+ggplot() +
+  geom_sf(data = st_as_sf(net1, "edges"), aes(color = factor(cod_edge))) +
+  theme_minimal()
+
+tmap_mode("plot") # o "view" para el mapa interactivo (leaflet)
+
+tm_shape(st_as_sf(net1, "edges")) +
+  tm_lines(col = "grey40") +
+  tm_shape(st_as_sf(net1, "nodes")) +
+  tm_dots(col = "red", size = 0.05)
+
+
+tm_shape(st_as_sf(net1, "edges")) +
+  tm_lines(col = "cod_edge", palette = c("blue", "orange"), lwd = 2) +
+  tm_shape(st_as_sf(net1, "nodes")) +
+  tm_dots(col = "black", size = 0.03)
+```
+
+```{r}
+avenidas <- net1 |>
+  activate("edges") |>
+  filter(tipo_c == "AVENIDA")
+
+avenidas |> igraph::components(mode = "weak")
+
+avenidas_limpia <- avenidas |>
+  activate("nodes") |>
+  filter(!node_is_isolated()) #activamos "nodes" (la otra tabla) y filtrás los que no (!) estén aislados — es decir, te quedás solo con los nodos que todavía tienen al menos un eje conectado.
+
+
+```
+
+#Caso 2: Belen de Escobar
+
+```{r}
+ESCOBAR <- getbb("Belén de Escobar, Provincia de Buenos Aires",
+                 format_out = "sf_polygon") #recordar que getbb es funcion de OSM!
+
+leaflet() |>
+  addTiles() |>
+  addPolygons(data = st_transform (ESCOBAR, 4326), color = "black")
+
+```
+
+```{r}
+class(ESCOBAR)
+ESCOBAR
+nrow(ESCOBAR)
+plot(st_geometry(ESCOBAR))
+st_is_valid(ESCOBAR)
+nrow(ESCOBAR)
+st_crs(ESCOBAR)
+st_bbox(ESCOBAR)
+mapview::npts(ESCOBAR)
+#investigar que pasa con el poligono
+```
+
+```{r hernan}
+# Consulta
+CALLE_OSM1 <- getbb("Belén de Escobar, Provincia de Buenos Aires") |>
+  # Realizar consulta en OSM
+  opq(timeout = 120) |>
+  add_osm_features(features = list(#"highway" = "construction",
+    "highway" = "living_street",
+    "highway" = "residential",
+    "highway" = "motorway",
+    "highway" = "motorway_link",
+    "highway" = "primary",
+    "highway" = "primary_link",
+    "highway" = "secondary",
+    "highway" = "secondary_link",
+    "highway" = "tertiary",
+    "highway" = "tertiary_link",
+    "highway" = "trunk",
+    "highway" = "trunk_link",
+    "highway" = "unclassified",
+    "highway" = "service")) |>
+  osmdata_sf()
+
+
+```
+
+```{r abreviado}
+CALLE_OSM <- getbb("Belén de Escobar, Provincia de Buenos Aires") |>
+  opq(timeout = 180) |>
+  add_osm_feature(
+    key = "highway",
+    value = c(
+      "living_street", "residential",
+      "motorway", "motorway_link",
+      "primary", "primary_link",
+      "secondary", "secondary_link",
+      "tertiary", "tertiary_link",
+      "trunk", "trunk_link",
+      "unclassified", "service"
+    )
+  ) |>
+  osmdata_sf()
+```
+
+```{r formato NO EJECUTAR}
+
+getbb("Belén de Escobar, Provincia de Buenos Aires") |>   # devuelve matriz bbox
+  opq(timeout: 180) |>                                     # query base
+  add_osm_features(features = list(...)) |>                # filtros OR
+  osmdata_sf()                                             # descarga + parsea
+```
+
+```{r}
+summary(CALLE_OSM) #por que hay poligonos? muchas veces la multilinea cerrada la lee conceptualmente como poligono, mas adelante tendremos que castear
+
+calles <- CALLE_OSM$osm_lines
+
+nrow(calles)                          # ¿cuántos segmentos?
+st_crs(calles)                        # ¿4326?
+table(st_geometry_type(calles))       # ¿todos LINESTRING?
+table(calles$highway, useNA = "ifany")# distribucion x tipos de vía
+```
+
+```{r}
+leaflet() |>
+  addTiles() |>
+  addPolygons(data = st_transform (ESCOBAR,4326), 
+              color = "black") |>
+  addPolylines(data = CALLE_OSM$osm_lines, color = "tomato") |>
+  addPolygons(data = CALLE_OSM$osm_polygons, color = "darkblue")
+```
+
+```{r}
+CALLE_OSM <- CALLE_OSM |>
+  # Extraer capas necesarias y unificar en única base (no se puede select porque no es tabla sino lista)
+  magrittr::extract(c("osm_lines", "osm_polygons")) |>
+  bind_rows() |>
+  # Seleccionar variables necesarias (ahora si es tabla)
+  select(osm_id, name, highway, lanes,oneway, maxspeed, surface) |>
+  # Transformar proyección
+  st_transform(5347)
+```
+
+```{r}
+# a. Castear a LINESTRING (no es necesario usar {geos} porque no hay multilíneas o multupolígonos)
+st_geometry_type(CALLE_OSM) |> fct_drop() |>  table() #fijate los tipos de geometria, dejando de lado las otras categorias y haceme una tabla
+CALLE_OSM <- st_cast(CALLE_OSM, "LINESTRING") #convertime todo a linestring
+st_geometry_type(CALLE_OSM) |> fct_drop() |>  table() #lo mismo de antes
+```
+
+```{r}
+#Redondeo para nodos de esquinas defasadas o rotondas
+# b. Round coordinates (tener cuidado de estar en proyección plana y considerar la unidad) 
+st_geometry(CALLE_OSM) <- st_geometry(CALLE_OSM)  |>
+  lapply(function(x) round(x, 0)) |>
+  st_sfc(crs = st_crs(CALLE_OSM))
+```
+
+```{r}
+# c. Manejar bordes bidireccionales (calles "doblemano")
+
+# Por qué hay calles sin dirección o datos (NA)?
+table(CALLE_OSM$highway, DOBLE_MANO = CALLE_OSM$oneway, exclude = NULL)
+
+#Para colorear en leaflet
+factpal <- colorFactor(topo.colors(length(unique(CALLE_OSM$highway))),
+                       CALLE_OSM$highway)
+CALLE_OSM |>
+  st_transform(4326) |>
+  filter(is.na(oneway)) |>
+  leaflet() |>
+  addTiles() |>
+  addPolylines(color = ~factpal(highway),
+               popup = ~ paste0("Tipo: ", highway, "<br>Mano única: ", oneway ) ) |>
+  addLegend(pal = factpal, values = ~highway, title = "Tipo de camino")
+rm(factpal)
+
+
+```
