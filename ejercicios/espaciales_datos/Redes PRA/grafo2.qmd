@@ -289,3 +289,65 @@ rm(factpal)
 
 
 ```
+
+
+```{r}
+# Imputamos a doble mano todas las calles que no están clasificadas
+  CALLE_OSM <- CALLE_OSM |>
+    mutate(oneway = ifelse(is.na(oneway), "no", oneway))
+# Duplicamos calles con doblevía
+  CALLE_aux <- CALLE_OSM |> filter(oneway == "no") |> st_reverse()
+  CALLE_OSM <- rbind(CALLE_OSM, CALLE_aux)
+  rm(CALLE_aux)
+  
+```
+
+
+```{r}
+# Armado red urbana -------------------------------------------
+
+  # convert to sfnetworks
+  net2 <- as_sfnetwork(CALLE_OSM, directed = TRUE)
+```
+
+```{r}
+Orden:
+  # Subdivide (2) -> Simplify (1) -> Simplify intersections (4) -> smooth pseudo nodes (3)
+
+  net_clean <-  net2 |>
+    # 2. Subdivide
+    convert(to_spatial_subdivision) |>
+    # 1. Simplify
+    activate("edges") |>
+    arrange(edge_length()) |>
+    filter(!edge_is_multiple()) |>
+    filter(!edge_is_loop()) # ≃ convert(to_spatial_simple)
+
+```
+
+
+
+```{r}
+
+  # 4. simplify intersections
+
+  # Retener las coordenadas de los nodos.
+  clusters <- net_clean %>%
+    activate("nodes") %>%
+    st_coordinates() |>
+    # Nodos dentro de una distancia de 3 (mts) entre sí estarán en el mismo clúster.
+    # A un nodo se le asigna un clúster incluso si es el único miembro de ese clúster.
+    dbscan(eps = 3, minPts = 1) |>
+    pluck("cluster")
+
+net_clean <- net_clean |>
+    activate("nodes") |>
+    mutate(cls = clusters,               # Add the cluster information to the nodes of the network.
+           cmp = group_components()) |>  # Verificar que los  nodos agrupados estén conectados en la red.
+    # Contraer la red (utilizando centroide del clúster y eliminando nodos individuales)
+    convert(to_spatial_contracted,
+            cls, # cmp,
+            simplify = TRUE)
+
+```
+
