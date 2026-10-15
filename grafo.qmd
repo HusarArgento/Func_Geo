@@ -434,3 +434,15 @@ resultados <- map(distancias, function(d) {
 resultados
 ```
 
+```{r}
+q <- opq(bbox = st_bbox(st_transform(ESCOBAR, 4326)),  # el bbox va en lon/lat
+           timeout = 1200,          # segundos que el servidor Overpass espera (por defecto 25)
+           memsize = 1073741824) |> # memoria en bytes (1 GB), para consultas grandes
+    add_osm_feature(key = "highway")
+
+
+leaflet() |>
+    addTiles() |>
+    addPolygons(data = st_transform(ESCOBAR, 4326))
+```
+
