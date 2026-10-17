@@ -376,8 +376,73 @@ igraph::components(net_undirected, mode = "strong")
 
 ```{r ejercicio 2}
 
+base_url <- paste("https://cdn.buenosaires.gob.ar",
+                   "datosabiertos/datasets", sep = "/")
+
+CABALLITO <- st_read(paste(base_url, "ministerio-de-educacion",
+                           "comunas/comunas.geojson", sep = "/"))  |>
+  st_transform(5347) |>
+  filter(comuna == 6)
+
+CABALLITO_buffer <- CABALLITO |>
+  st_buffer(500)
+
+CALLE <- st_read(paste(base_url, "jefatura-de-gabinete-de-ministros",
+                       "calles/callejero.geojson", sep = "/") ) |>
+  st_transform(5347) |>
+  st_intersection(CABALLITO_buffer)
+
+net <- as_sfnetwork(CALLE, directed = FALSE)
 
 
+```
+```{r}
+distancias <- c(0, 250, 1000)
 
+map(distancias, function(d) {
+  CABALLITO |> st_buffer(d) |> st_area()
+})
+```
+
+```{r}
+library(purrr)
+
+# Objeto de calles sin recortar
+CALLE_cruda <- st_read(paste(base_url, "jefatura-de-gabinete-de-ministros",
+                             "calles/callejero.geojson", sep = "/")) |>
+  st_transform(5347)
+
+distancias <- c(0, 250, 1000)
+
+resultados <- map(distancias, function(d) {
+  
+  buffer <- CABALLITO |> st_buffer(d)
+  
+  calle_cortada <- CALLE_cruda |>
+    st_intersection(buffer)
+  
+  net <- as_sfnetwork(calle_cortada, directed = FALSE)
+  
+  tibble(
+    distancia = d,
+    nodos = igraph::gorder(net),
+    ejes = igraph::gsize(net),
+    componentes = igraph::components(net)$no
+  )
+}) |> bind_rows()
+
+resultados
+```
+
+```{r}
+q <- opq(bbox = st_bbox(st_transform(ESCOBAR, 4326)),  # el bbox va en lon/lat
+           timeout = 1200,          # segundos que el servidor Overpass espera (por defecto 25)
+           memsize = 1073741824) |> # memoria en bytes (1 GB), para consultas grandes
+    add_osm_feature(key = "highway")
+
+
+leaflet() |>
+    addTiles() |>
+    addPolygons(data = st_transform(ESCOBAR, 4326))
 ```
 

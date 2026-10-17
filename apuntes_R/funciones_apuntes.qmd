@@ -190,7 +190,7 @@ Y aprovecho para señalar algo: hace unas horas veías símbolos como `~`, `\(x)
 
 Ese cambio de perspectiva es mucho más importante que memorizar la sintaxis concreta.
 
-# Funcionales ------------------------------------
+# Funcionales ----------------------------
 
 ```{r}
   # Toma un vector y una función, llama a la función una vez para cada elemento
