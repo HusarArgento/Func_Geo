@@ -12,6 +12,8 @@ library(osmdata)
 library(mapview)
 library(leaflet)
 library(tmap)
+library(lwgeom)
+
 
 #Descarga
 CHAS <- getbb("Parque Chas, Ciudad Autónoma de Buenos Aires",
@@ -22,7 +24,7 @@ leaflet() |>
 
 
 callejero_CHAS <- getbb("Parque Chas, Ciudad Autónoma de Buenos Aires") |>
-  opq(timeout = 180) |>
+  opq(timeout = 200) |>
   add_osm_feature(
     key = "highway",
     value = c(
@@ -45,6 +47,7 @@ nrow(calles)                          # ¿cuántos segmentos?
 st_crs(calles)                        # ¿4326?
 table(st_geometry_type(calles))       # ¿todos LINESTRING?
 table(calles$highway, useNA = "ifany")# distribucion x tipos de vía
+rm(calles)
 
 leaflet() |>
   addTiles() |>
@@ -64,7 +67,7 @@ callejero_CHAS <- callejero_CHAS |>
 
 #Paso todo a linestring
 st_geometry_type(callejero_CHAS) |> fct_drop() |>  table()  #reviso tipos de goemetria
-callejero_CHAS <- st_cast(callejero_CHAS, "LINESTRING")  #casteo a linestring todo
+callejero_CHAS2 <- st_cast(callejero_CHAS2, "LINESTRING")  #casteo a linestring todo
 st_geometry_type(callejero_CHAS) |> fct_drop() |>  table() #verifico que haya pasado bien
 
 #Redondeo
@@ -72,8 +75,13 @@ st_geometry(callejero_CHAS) <- st_geometry(callejero_CHAS)  |>
   lapply(function(x) round(x, 0)) |>
   st_sfc(crs = st_crs(callejero_CHAS))
 
+#Alternavita
+st_snap_to_grid(callejero_CHAS2, size = 1)
+
+
 #Me fijo las calles de dos y una mano
 table(callejero_CHAS$highway, DOBLE_MANO = callejero_CHAS$oneway, exclude = NULL)
+
 
 #Grafico
 #Preparacicon
@@ -96,6 +104,7 @@ rm(factpal)
 callejero_CHAS <- callejero_CHAS |>
   mutate(oneway = ifelse(is.na(oneway), "no", oneway))
 
+
 #reverso: filtrame todas las que no son de una mano y revertilas
 CALLE_ghost <- callejero_CHAS |> filter(oneway == "no") |> st_reverse()
 
@@ -108,6 +117,14 @@ rm(CALLE_ghost)
 
 #A la red!
 red_CHAS <- as_sfnetwork(callejero_CHAS, directed = TRUE)
+gorder(red_CHAS)
+red_CHAS2 <- as_sfnetwork(callejero_CHAS, directed = TRUE)
+gorder(red_CHAS2)
+
+#MMisma cantidad de NODOS!
+gorder(red_CHAS)
+gsize(red_CHAS)
+#524 nodos / 472 aristas
 
 CHAS_limpia <-  red_CHAS |> 
   convert(to_spatial_subdivision) |> # 1 Subdivide
@@ -115,6 +132,9 @@ CHAS_limpia <-  red_CHAS |>
     arrange(edge_length()) |>
     filter(!edge_is_multiple()) |>
     filter(!edge_is_loop()) #2 Simplifico: descarto lo multiple y los loops
+gorder(CHAS_limpia) #607 nodos
+gsize(CHAS_limpia) #826 aristas
+
 
 #Simplifico intersecciones
 #Aca clasifico para clusterizar el grupo de nodos por esquinas
@@ -123,8 +143,11 @@ clusters <- CHAS_limpia %>%
   st_coordinates() |>
   dbscan(eps = 3, minPts = 1) |>
   pluck("cluster")
+gorder(CHAS_limpia) #607 nodos
+gsize(CHAS_limpia) #826 aristas
 
-#Fusiono
+
+#Fusiono o COntract
 CHAS_limpia <- CHAS_limpia |>
   activate("nodes") |>
   mutate(cls = clusters,
@@ -132,9 +155,15 @@ CHAS_limpia <- CHAS_limpia |>
   convert(to_spatial_contracted,
           cls,
           simplify = TRUE)
+gorder(CHAS_limpia) #439 nodos
+gsize(CHAS_limpia) #823 aristas
+
 #Smooth
 CHAS_limpia <- CHAS_limpia |>
   convert(to_spatial_smooth)
+gorder(CHAS_limpia) #390 nodos
+gsize(CHAS_limpia) #774 aristas
+
 
 components(red_CHAS)$no
 components(CHAS_limpia)$no
@@ -158,7 +187,6 @@ CHAS_aux |>
 
 rm(CHAS_aux)
 
-#Dejamos una sola red conectada, tomando el componenete principal
 
 components(CHAS_limpia)$csize #verifico componente principal
 
@@ -167,3 +195,7 @@ CHAS_limpia <- CHAS_limpia |>
   filter(group_components() == 1) |>    # Select 1st component
   activate("edges") |>
   mutate(weight = edge_length())        # Add weights to edges
+
+
+#Distancia
+distancia <- st_network_cost(CHAS_limpia, from = 95, to = 121)
