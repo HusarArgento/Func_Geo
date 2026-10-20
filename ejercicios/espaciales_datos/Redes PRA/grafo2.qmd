@@ -290,7 +290,6 @@ rm(factpal)
 
 ```
 
-
 ```{r}
 # Imputamos a doble mano todas las calles que no están clasificadas
   CALLE_OSM <- CALLE_OSM |>
@@ -301,7 +300,6 @@ rm(factpal)
   rm(CALLE_aux)
   
 ```
-
 
 ```{r}
 # Armado red urbana -------------------------------------------
@@ -324,8 +322,6 @@ Orden:
     filter(!edge_is_loop()) # ≃ convert(to_spatial_simple)
 
 ```
-
-
 
 ```{r}
 
@@ -350,4 +346,3 @@ net_clean <- net_clean |>
             simplify = TRUE)
 
 ```
-
