@@ -168,8 +168,7 @@ closest <- PLAZAS[apply(cost_matrix, 1, function(x) order(x)[1:n]) |> as.numeric
 closest2 <- PLAZAS[apply(cost_matrix, 1, function(x) order(x)[1:n2]) |> as.numeric(), ] |>
   st_coordinates()
 
-matriz_euclidiana <- as.matrix(euclidiana)
-indice_tortuosidad <- cost_matrix / matriz_euclidiana
+
 
 #con n=2
 aux_df <- data.frame(escuela = rep(ESC$fna, each = n),                  # nombre de la escuela
@@ -226,3 +225,6 @@ g2 <- ggplot() +
 
 g1 + g2
 ggsave("comparacion_plazas.png", width = 12, height = 6)
+
+
+
