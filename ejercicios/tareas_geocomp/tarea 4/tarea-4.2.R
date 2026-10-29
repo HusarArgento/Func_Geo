@@ -345,3 +345,102 @@ ggplot() +
 
 rm(a_edges, a_edges_list, a_nodes, cost_matrix, new_POI, rdm_idxs, tour, tour_idxs, tour_path)
 
+
+# Tercer ejercicio  ==================================================================
+
+# --- 3.1 Calcular el tiempo de recorrido de cada tramo ---
+net <- activate(net, "edges") |>      
+  mutate( # Velocidad de caminata (todo a 5)
+    speed = case_when(tipo_c == "AVENIDA" ~ 5, 
+                      tipo_c == "CALLE"   ~ 5,
+                      TRUE                ~ 5),
+    speed  = units::set_units(speed, "km/h"),     # Le asignamos la unidad km/h
+    speed  = units::set_units(speed, "m/s"),      # La convertimos a metros por segundo
+    weight = edge_length(),                       # Largo del tramo, en metros
+    # Tiempo = distancia / velocidad -> resultado en segundos (m / (m/s))
+    time   = weight / speed,
+    time   = units::set_units(time, "minutes"),   # Lo pasamos a minutos
+    # igraph necesita números "puros": guardamos el tiempo sin unidades
+    time   = units::drop_units(time)
+  ) |>
+  activate("nodes")                    # Volvemos a dejar activos los nodos
+
+
+
+# --- 3.3 Tiempo desde el origen hasta cada nodo ---
+
+ori      <- st_geometry(POI[1, ])          # Primer POI: Facultad de Agronomía
+ori_node <- st_nearest_feature(ori, net)   # Nodo de la red más cercano al origen
+
+# --- 3.3 Tiempo desde el origen hasta cada nodo ---
+iso <- net |>
+  mutate(
+    # node_distance_from() calcula, para CADA nodo, el costo del camino más
+    # corto desde el nodo de origen. Como usamos weights = time, el
+    # resultado es el TIEMPO de viaje en minutos.
+    DIS_FAC_AGRO = node_distance_from(ori_node, weights = time),
+    # cut() clasifica ese tiempo continuo en rangos (categorías):
+    #   [0,1] -> "1 min" | (1,3] -> "3 min" | (3,6] -> "6 min" | (6,10] -> ">6 min"
+    # include.lowest = TRUE hace que el propio origen (tiempo 0) entre en
+    # "1 min". Los nodos a más de 10 minutos quedan como NA.
+    iso = cut(DIS_FAC_AGRO, breaks = c(0, 1, 3, 6, 10),
+              labels = c("1 min", "3 min", "6 min", ">6 min"),
+              include.lowest = TRUE)
+  )
+# filter(DIS_FAC_AGRO <= 1)   # (alternativa: quedarse solo con lo alcanzable en 1 min)
+
+# --- 3.4 Polígono de la isocrona de 1 minuto ---
+#  Tomamos los nodos alcanzables en 1 minuto o menos y dibujamos la
+#  "envolvente convexa" (convex hull): el polígono más chico que los contiene,
+#  como si estiráramos una banda elástica alrededor de ellos.
+iso_poly <- iso |>
+  filter(DIS_FAC_AGRO <= 1) |>   # Nodos a 1 minuto o menos
+  st_geometry() |>               # Solo la geometría
+  st_combine() |>                # Unimos todos los puntos en un MULTIPOINT
+  st_convex_hull()               # Calculamos la envolvente convexa
+
+# --- 3.5 Mapa: isocrona de 1 minuto ---
+ggplot() +
+  geom_sf(data = st_as_sf(net, "edges"), color = "grey") +       # Red de fondo
+  geom_sf(data = st_as_sf(net, "nodes"), color = "grey", size = 0.3) +
+  # Calles alcanzables: al filtrar los nodos, tidygraph elimina también las
+  # aristas que pierden alguno de sus extremos. Quedan las calles "internas".
+  geom_sf(data = iso |>
+            activate("nodes") |>
+            filter(DIS_FAC_AGRO <= 1) |>
+            st_as_sf("edges"),
+          color = "darkgreen") +
+  geom_sf(data = st_as_sf(iso, "nodes") |> filter(DIS_FAC_AGRO <= 1),   # Nodos alcanzables
+          color = "darkgreen") +
+  geom_sf(data = iso_poly, color = "darkblue", fill = NA, linewidth = 1) + # Polígono isocrona
+  geom_sf(data = ori, color = "tomato", shape = 8, size = 5) +          # Origen (estrella)
+  labs(title = "Isocrona de 1 minuto") +
+  theme_void()
+
+# --- 3.6 Mapa: todas las isocronas por categoría ---
+ggplot() +
+  geom_sf(data = st_as_sf(net, "edges"), color = "grey") +
+  geom_sf(data = st_as_sf(net, "nodes"), color = "grey", size = 0.3) +
+  # Cada nodo se colorea según su rango de tiempo (columna "iso").
+  # Dibujamos solo los que tienen categoría (los NA quedan en gris).
+  geom_sf(data = st_as_sf(iso, "nodes") |> filter(!is.na(iso)), aes(color = iso)) +
+  geom_sf(data = ori, color = "tomato", shape = 8, size = 5) +
+  # Paleta viridis: ordenada y legible para personas con daltonismo
+  scale_color_viridis_d("Distancia a la\nFacultad de\nAgronomía") +
+  labs(title = "Isocrona de Facultad de Agronomia") +
+  theme_void() 
+
+
+# Respuestas  ==================================================================
+
+# 4) Obviamente estan mucho mas concentradas, pero se observa con mejor detalle, al estar el peso de 
+# igualado de las velocidades, la accesibilidad. 
+# 5) Respecto de convex hull, tiene la limitacion de que como es una envolvente, es decir traza un poligono 
+# alrededor de un junto de puntos que yo le doy, pueden quedar lugares inaccesibles dentro de ese poligono.
+# Por otro lado, el convex lo que hace es guiarse por los puntos extremos, es decir lo que determina el contorno
+# exterior, por eso envuelve, pero no tiene en cuenta la red espacial dentro de ese poligono envolvente
+# st_concave_hull() es mejor, segun varias IAs que consulte, porque puede seguir más de cerca la distribución 
+# de los puntos formando  una envolvente menos regular, mediante al argumento ratio que permite controlar 
+#la concavidad.
+
+
