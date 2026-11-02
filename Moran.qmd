@@ -131,3 +131,99 @@ moran.mc(
   nsim = 999
 )
 ```
+
+```{r}
+moran.plot(
+  municipios$remuneracion,
+  pesos
+)
+```
+
+```{r}
+moran_local <- localmoran(
+  municipios$remuneracion,
+  pesos
+)
+
+print(moran_local)
+```
+
+```{r}
+p_valores <- moran_local[, "Pr(z != E(Ii))"]
+
+p_bonferroni <- p.adjust(
+  p_valores,
+  method = "bonferroni"
+)
+
+print(p_bonferroni)
+
+```
+
+```{r}
+p_fdr <- p.adjust(
+  p_valores,
+  method = "BH"
+)
+
+print(p_fdr)
+```
+
+```{r}
+municipios$cuadrante <- attr(moran_local, "quadr")[, "mean"]
+
+municipios$p_fdr <- p_fdr
+
+municipios$cluster_lisa <- ifelse(
+  municipios$p_fdr < 0.05,
+  municipios$cuadrante,
+  "No significativo"
+)
+
+print(municipios)
+```
+
+```{r}
+library(ggplot2)
+
+ggplot(municipios, aes(x = x, y = y)) +
+  geom_point(aes(color = cuadrante), size = 7) +
+  geom_text(aes(label = municipio), color = "white", size = 3) +
+  scale_color_manual(values = c(
+    "High-High" = "red",
+    "Low-Low" = "blue",
+    "High-Low" = "orange",
+    "Low-High" = "purple"
+  )) +
+  coord_equal() +
+  labs(
+    title = "Cuadrantes de autocorrelación espacial local",
+    subtitle = "Clasificación descriptiva, sin filtro de significación",
+    x = "Coordenada X",
+    y = "Coordenada Y",
+    color = "Cuadrante LISA"
+  ) +
+  theme_minimal()
+```
+
+```{r}
+ggplot(municipios, aes(x = x, y = y)) +
+  geom_point(aes(color = cluster_lisa), size = 7) +
+  geom_text(aes(label = municipio), color = "white", size = 3) +
+  scale_color_manual(values = c(
+    "High-High" = "red",
+    "Low-Low" = "blue",
+    "High-Low" = "orange",
+    "Low-High" = "purple",
+    "No significativo" = "grey70"
+  )) +
+  coord_equal() +
+  labs(
+    title = "Mapa LISA: agrupamientos estadísticamente significativos",
+    subtitle = "Corrección por comparaciones múltiples: Benjamini-Hochberg",
+    x = "Coordenada X",
+    y = "Coordenada Y",
+    color = "Clasificación"
+  ) +
+  theme_minimal()
+```
