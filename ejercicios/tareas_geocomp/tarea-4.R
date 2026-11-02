@@ -1,6 +1,8 @@
 #Tarea 4
 
 #Librerias
+<<<<<<< HEAD
+=======
 library(tidyverse)
 
 library(sf)
@@ -42,3 +44,4 @@ CALLE <- st_read(paste(url_base, "jefatura-de-gabinete-de-ministros",
   filter(sentido %in% c("CRECIENTE", "DECRECIENTE","DOBLE") )
 
 rm(url_base, COMUNAS_buffer)
+>>>>>>> 63e207a3e68bfe912af13e100e7f143a0ea14de6

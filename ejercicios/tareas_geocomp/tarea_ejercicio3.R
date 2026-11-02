@@ -24,6 +24,7 @@ leaflet() |>
 
 
 callejero_CHAS <- getbb("Parque Chas, Ciudad Autónoma de Buenos Aires") |>
+  opq(timeout = 180) |>
   opq(timeout = 200) |>
   add_osm_feature(
     key = "highway",
