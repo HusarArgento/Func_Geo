@@ -1,0 +1,133 @@
+---
+title: "Ejercicios Autocorrelacion"
+author: "LSM"
+format: html
+editor: visual
+---
+
+```{r}
+1 + 1
+```
+
+You can add options to executable code like this
+
+```{r}
+#| echo: false
+2 * 2
+```
+
+```{r}
+#Librerias
+library(tidyverse)
+library(sf)
+library(geos)
+library(ggpubr)
+library(leaflet)
+library(igraph)
+library(tidygraph)
+library(sfnetworks)
+library(patchwork)
+library(spdep)
+library(here)
+options(scipen = 999)
+
+```
+
+```{r}
+empleo_amba <- Empleo_AMBA_sin_desagregar
+
+empleo_ambaf <- empleo_amba |>
+  select(LINK, matches("med|id", ignore.case = TRUE) &
+           !matches("cantidad|hombres|mujeres", ignore.case = TRUE))
+radios <- st_read(here("data", "Espaciales", "Shape_amba", "Shapes",  "Shape AMBA.shp"))
+
+```
+
+```{r}
+
+print(radios)
+st_crs(radios)
+head(radios$CO_FRAC_RA)
+length(unique(radios$CO_FRAC_RA))
+
+head(empleo_ambaf$LINK)
+length(unique(empleo_ambaf$LINK))
+class(empleo_ambaf$LINK)
+
+
+```
+
+```{r}
+municipios <- data.frame(
+  id = 1:9,
+  municipio = paste0("M", 1:9),
+  remuneracion = c(
+    1200, 1150, 1100,
+    800, 850, 780,
+    400, 450, 420
+  )
+)
+
+print(municipios)
+```
+
+```{r}
+# Crear coordenadas de los centroides
+municipios$x <- rep(1:3, each = 3)
+municipios$y <- rep(3:1, times = 3)
+
+# Convertir la tabla en objeto espacial
+municipios_sf <- st_as_sf(
+  municipios,
+  coords = c("x", "y"),
+  crs = 32721
+)
+
+print(municipios_sf)
+plot(st_geometry(municipios_sf))
+
+
+```
+
+```{r}
+# Obtener coordenadas de los puntos
+coordenadas <- st_coordinates(municipios_sf)
+
+# Identificar los 2 vecinos más cercanos
+vecinos_knn <- knearneigh(coordenadas, k = 2)
+
+# Convertir el resultado en una lista de vecinos
+vecinos <- knn2nb(vecinos_knn)
+
+print(vecinos)
+
+```
+
+```{r}
+pesos <- nb2listw(
+  vecinos,
+  style = "W"
+)
+
+lag_remuneracion <- lag.listw(
+  pesos,
+  municipios$remuneracion
+)
+
+print(lag_remuneracion)
+```
+
+```{r}
+moran.test(
+  municipios$remuneracion,
+  pesos
+)
+```
+
+```{r}
+moran.mc(
+  municipios$remuneracion,
+  pesos,
+  nsim = 999
+)
+```
